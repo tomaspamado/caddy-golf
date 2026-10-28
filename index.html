@@ -197,13 +197,13 @@ function recommend(D,brg){
   let mode=S.cond.mode;if(mode==='auto')mode=(maxTot&&D>=0.85*maxTot)?'total':'approach';
   if(R.lay&&S.cond.mode==='auto')mode='total';
   r.mode=mode;const w=MODES[mode].w;
-  if(r.plays<25){r.short=true;r.list=[];return r;}
   const cl=act.map(x=>Object.assign({},x,{reach:x.carry+w*x.roll*r.rollMult})).sort((a,b)=>a.reach-b.reach);
   r.list=cl;if(!cl.length)return r;
   let best=null;
   if(mode==='carry'){best=cl.find(x=>x.reach>=r.plays*1.03)||null;}
   else{let bs=1e9;cl.forEach(x=>{const d=x.reach-r.plays,s=d>=0?d:-d*1.5;if(s<bs){bs=s;best=x;}});if(best&&best.reach<r.plays*0.9)best=null;}
-  if(best){const i=cl.indexOf(best);r.best=best;r.shorter=cl[i-1]||null;r.longer=cl[i+1]||null;r.swing=(r.plays-w*best.roll*r.rollMult)/best.carry;}
+  if(best){const i=cl.indexOf(best);r.best=best;r.shorter=cl[i-1]||null;r.longer=cl[i+1]||null;r.swing=(r.plays-w*best.roll*r.rollMult)/best.carry;
+    if(i===0&&r.swing<0.92){r.partial=true;if(r.swing<0.35||r.plays<15)r.short=true;}}
   else{r.longest=cl[cl.length-1];r.leave=r.plays-r.longest.reach;}
   return r;
 }
@@ -348,7 +348,8 @@ function spread(club){
   }
   return{lat:prior.lat,dep:prior.dep,learned:false,n:0};
 }
-function expDist(r,club){return Math.max(0,(club.reach-S.cond.elev)/(1+r.pct));}
+function expDist(r,club){const reach=(r.partial&&r.best&&club.id===r.best.id)?r.plays:club.reach;return Math.max(0,(reach-S.cond.elev)/(1+r.pct));}
+function swingWord(p){return p>=85?'smooth swing':(p>=70?'three-quarter swing':(p>=50?'half swing':'short, soft swing'));}
 function lateral(r,club){const dC=expDist(r,club),c=S.cond;const wind=-r.cross*dC*0.004,slope=(c.tilt||0)*0.25*club.roll*r.rollMult;const st=((c.stance===-1?1:c.stance===1?-1:0)+(c.ballh===-1?1:c.ballh===1?-1:0))*0.03*dC*(S.lefty?-1:1);return{wind:wind,slope:slope,stance:st,total:wind+slope+st};}
 function activeCtx(){
   const aim=R.lay||R.target||R.pin;if(!R.me||!aim)return null;
@@ -390,9 +391,10 @@ function sheetHTML(){
   const mine=!!(R.sel&&club&&r.best&&club.id!==r.best.id);
   let h='<div class="hero"><div>';
   if(club){
-    h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+(mine?'Your pick':(R.lay?'Lay-up':(r.best?MODES[r.mode].n:'Out of range')))+'</div><button class="clubbtn" data-act="picker">'+esc(club.name)+'<span> ▾</span></button>';
+    h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+(mine?'Your pick':(R.lay?'Lay-up':(r.partial?'Shorter than any club':(r.best?MODES[r.mode].n:'Out of range'))))+'</div><button class="clubbtn" data-act="picker">'+esc(club.name)+'<span> ▾</span></button>';
   }else h+='<div class="club">No clubs</div>';
   h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">plays like '+d1(r.plays)+' '+unit+'</div></div></div>';
+  if(r.partial&&club&&r.best&&club.id===r.best.id){const pc=Math.round(r.swing*100);h+='<div class="aim">Swing about <b>'+pc+'%</b> of a full shot ('+swingWord(pc)+')</div>';}
   const lt=club?lateral(r,club):null;
   if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push('crosswind');if(Math.abs(lt.slope)>=1)why.push('slope');if(Math.abs(lt.stance)>=1)why.push('stance');const wt=why.length>1?why.slice(0,-1).join(', ')+' and '+why[why.length-1]:why[0];h+='<div class="aim">↔ Aim '+d1(Math.abs(lt.total))+' '+unit+' '+(lt.total<0?'right':'left')+' for the '+wt+'</div>';}
   const p=r.parts,bits=[],sg=v=>(v>0?'+':'')+d1(v);
