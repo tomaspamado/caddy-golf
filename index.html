@@ -148,11 +148,11 @@ function defaultClubs(){
   return d.map((c,i)=>({id:'c'+i,name:c[0],carry:c[1],roll:c[2],on:true}));
 }
 function defaults(){return{units:'m',clubs:defaultClubs(),setup:false,rlog:[],rsel:null,wxAuto:true,wxTime:0,round:null,rounds:[],disp:1,miss:{},nh:9,
-  cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,tilt:0,mode:'auto'},wxOk:false,stats:false,hist:{},log:[],pending:null,nid:100};}
+  cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,tilt:0,stance:0,ballh:0,mode:'auto'},alt:0,lefty:false,wxOk:false,stats:false,hist:{},log:[],pending:null,nid:100};}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs){S=Object.assign(defaults(),j);S.cond=Object.assign(defaults().cond,j.cond||{});if(S.cond.mode==='approach'&&!j.v2)S.cond.mode='auto';S.v2=1;}}catch(e){}
 function save(){try{S.v2=1;localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-const R={lay:null,sel:null,me:null,acc:null,target:null,pin:null,manual:false,placePin:false,expanded:false,framed:false};
+const R={elevSrc:null,lay:null,sel:null,me:null,acc:null,target:null,pin:null,manual:false,placePin:false,expanded:false,framed:false};
 
 /* ================= units ================= */
 const U=()=>S.units==='y'?M2Y:1;
@@ -183,11 +183,12 @@ function calc(D,brg){
   const tempPct=(20-c.temp)*0.002;
   const rainPct=[0,0.01,0.02][c.rain];
   const lie=LIES[c.lie];
-  const pct=windPct+tempPct+rainPct+lie.add;
+  const altPct=-(S.alt||0)/300*0.01,stPct=c.stance===1?0.04:(c.stance===-1?-0.03:0);
+  const pct=windPct+tempPct+rainPct+lie.add+altPct+stPct;
   const plays=D*(1+pct)+c.elev;
   const rollMult=[0.7,1,1.25][c.ground]*[1,0.75,0.55][c.rain]*lie.roll;
   const drift=Math.abs(cross)*D*0.004;
-  return{D,plays,pct,rollMult,head,cross,drift,parts:{wind:D*windPct,temp:D*tempPct,rain:D*rainPct,lie:D*lie.add,elev:c.elev}};
+  return{D,plays,pct,rollMult,head,cross,drift,parts:{wind:D*windPct,temp:D*tempPct,rain:D*rainPct,lie:D*lie.add,alt:D*altPct,stance:D*stPct,elev:c.elev}};
 }
 function recommend(D,brg){
   const r=calc(D,brg);
@@ -225,7 +226,7 @@ function setMe(ll,acc){
   refresh();
 }
 function placeTarget(ll){
-  R.target=ll;R.sel=null;S.cond.lie=0;S.cond.elev=0;S.cond.tilt=0;
+  R.target=ll;R.sel=null;S.cond.lie=0;S.cond.elev=0;S.cond.tilt=0;S.cond.stance=0;S.cond.ballh=0;R.elevSrc=null;S.cond.elev=0;
   if(!mk.t){mk.t=L.marker(ll,{icon:dIcon('tg','',[30,30]),draggable:true,zIndexOffset:900}).addTo(map);mk.t.on('drag',e=>{R.target=e.target.getLatLng();refresh();});}
   else mk.t.setLatLng(ll);
   refresh();
@@ -307,7 +308,24 @@ async function fetchWeather(){
 /* ================= sheet ================= */
 const sheetBody=$('#sheetBody');
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function refresh(){refreshLines();drawZone();updatePill();renderSheet();}
+function refresh(){refreshLines();drawZone();updatePill();renderSheet();scheduleElev();}
+let elevKey='',elevTimer=null;
+function scheduleElev(){if(elevTimer)clearTimeout(elevTimer);elevTimer=setTimeout(doElev,700);}
+async function doElev(){
+  if(!R.me)return;
+  const aim=R.lay||R.target||R.pin,q=p=>p.lat.toFixed(4)+','+p.lng.toFixed(4);
+  const key=q(R.me)+'|'+(aim?q(aim):'');
+  if(key===elevKey)return;elevKey=key;
+  const pts=aim?[R.me,aim]:[R.me];
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/elevation?latitude='+pts.map(p=>p.lat.toFixed(4)).join(',')+'&longitude='+pts.map(p=>p.lng.toFixed(4)).join(','));
+    const e=(await r.json()).elevation;
+    if(!e||e.length<pts.length||e.some(x=>typeof x!=='number'))return;
+    S.alt=Math.max(0,Math.round(e[0]));
+    if(pts.length===2&&R.elevSrc!=='manual'){const d=e[1]-e[0];S.cond.elev=Math.abs(d)<2?0:Math.round(d*2)/2;R.elevSrc='auto';}
+    save();refresh();
+  }catch(err){elevKey='';}
+}
 function renderSheet(){
   sheetBody.innerHTML=sheetHTML();
   requestAnimationFrame(()=>document.documentElement.style.setProperty('--sh',$('#sheet').offsetHeight+'px'));
@@ -331,7 +349,7 @@ function spread(club){
   return{lat:prior.lat,dep:prior.dep,learned:false,n:0};
 }
 function expDist(r,club){return Math.max(0,(club.reach-S.cond.elev)/(1+r.pct));}
-function lateral(r,club){const dC=expDist(r,club);const wind=-r.cross*dC*0.004,slope=(S.cond.tilt||0)*0.25*club.roll*r.rollMult;return{wind:wind,slope:slope,total:wind+slope};}
+function lateral(r,club){const dC=expDist(r,club),c=S.cond;const wind=-r.cross*dC*0.004,slope=(c.tilt||0)*0.25*club.roll*r.rollMult;const st=((c.stance===-1?1:c.stance===1?-1:0)+(c.ballh===-1?1:c.ballh===1?-1:0))*0.03*dC*(S.lefty?-1:1);return{wind:wind,slope:slope,stance:st,total:wind+slope+st};}
 function activeCtx(){
   const aim=R.lay||R.target||R.pin;if(!R.me||!aim)return null;
   const D=dist(R.me,aim),brg=bearing(R.me,aim),r=recommend(D,brg);
@@ -376,13 +394,15 @@ function sheetHTML(){
   }else h+='<div class="club">No clubs</div>';
   h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">plays like '+d1(r.plays)+' '+unit+'</div></div></div>';
   const lt=club?lateral(r,club):null;
-  if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push('crosswind');if(Math.abs(lt.slope)>=1)why.push('slope');h+='<div class="aim">↔ Aim '+d1(Math.abs(lt.total))+' '+unit+' '+(lt.total<0?'right':'left')+' for the '+why.join(' and ')+'</div>';}
+  if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push('crosswind');if(Math.abs(lt.slope)>=1)why.push('slope');if(Math.abs(lt.stance)>=1)why.push('stance');const wt=why.length>1?why.slice(0,-1).join(', ')+' and '+why[why.length-1]:why[0];h+='<div class="aim">↔ Aim '+d1(Math.abs(lt.total))+' '+unit+' '+(lt.total<0?'right':'left')+' for the '+wt+'</div>';}
   const p=r.parts,bits=[],sg=v=>(v>0?'+':'')+d1(v);
   if(Math.abs(p.wind)>=1)bits.push((r.head>=0?'Headwind ':'Tailwind ')+sg(p.wind));
   if(Math.abs(p.temp)>=1)bits.push((p.temp>0?'Cold ':'Warm ')+sg(p.temp));
   if(p.rain>=1)bits.push('Rain '+sg(p.rain));
   if(p.lie>=1)bits.push(LIES[S.cond.lie].n+' '+sg(p.lie));
   if(Math.abs(p.elev)>=1)bits.push((p.elev>0?'Uphill ':'Downhill ')+sg(p.elev));
+  if(Math.abs(p.alt)>=1)bits.push('Altitude '+sg(p.alt));
+  if(Math.abs(p.stance)>=1)bits.push((S.cond.stance===1?'Uphill lie ':'Downhill lie ')+sg(p.stance));
   if(lt&&Math.abs(lt.slope)>=1)bits.push('Side slope '+(lt.slope<0?'left ':'right ')+d1(Math.abs(lt.slope)));
   h+='<div class="why">'+(bits.length?bits.join(' · ')+' '+unit:'No adjustments. Conditions are neutral.')+'</div>';
   if(club){
@@ -409,7 +429,8 @@ function openPicker(){
 function detailsHTML(r){
   const c=S.cond,unit=ul();let h='<div class="det">';
   h+='<h4>Lie</h4><div class="seg">'+LIES.map((l,i)=>'<button class="'+(c.lie===i?'on':'')+'" data-act="lie" data-v="'+i+'">'+l.n+'</button>').join('')+'</div>';
-  h+='<h4>Slope to target</h4><div class="stepper"><button data-act="elev" data-v="-1">−</button><div class="v">'+(c.elev>0?'+':'')+d1(c.elev)+'<small> '+unit+'</small></div><button data-act="elev" data-v="1">+</button></div><div class="sub" style="margin-top:6px">Uphill is positive. Downhill is negative.</div>';
+  h+='<h4>Slope to target</h4><div class="stepper"><button data-act="elev" data-v="-1">−</button><div class="v">'+(c.elev>0?'+':'')+d1(c.elev)+'<small> '+unit+'</small></div><button data-act="elev" data-v="1">+</button></div><div class="sub" style="margin-top:6px">'+(R.elevSrc==='auto'?'From map data (rough, a few metres off). Tap − or + to correct it.':'Uphill is positive. Downhill is negative.')+'</div>';
+  h+='<h4>Where you stand</h4><div class="seg">'+[[0,'Flat lie'],[1,'Uphill lie'],[-1,'Downhill lie']].map(x=>'<button class="'+((c.stance||0)===x[0]?'on':'')+'" data-act="stance" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="seg" style="margin-top:10px">'+[[0,'Ball level'],[1,'Ball above feet'],[-1,'Ball below feet']].map(x=>'<button class="'+((c.ballh||0)===x[0]?'on':'')+'" data-act="ballh" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="sub" style="margin-top:6px">Uphill lie: higher, shorter, goes left. Downhill lie: lower, farther, goes right. Above your feet goes left, below goes right (flipped if you are left-handed).</div>';
   h+='<h4>Which way would the ball roll after landing?</h4><div class="seg">'+[[-2,'← a lot'],[-1,'← a bit'],[0,'Not at all'],[1,'a bit →'],[2,'a lot →']].map(x=>'<button class="'+((c.tilt||0)===x[0]?'on':'')+'" data-act="tilt" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
   h+='<h4>Pin</h4><div class="row">'+(R.placePin?'<span class="sub">Tap the map to place the pin…</span>':'<button class="sec" data-act="pinmode">⛳ '+(R.pin?'Move pin':'Place pin')+'</button>')+(R.pin?'<button class="sec" data-act="clearpin">Remove pin</button>':'')+(R.target?'<button class="sec" data-act="cleartarget">Clear target</button>':'')+'</div>';
   if(R.target&&R.pin)h+='<div class="sub" style="margin-top:8px">Pin is '+d1(dist(R.target,R.pin))+' '+unit+' past your target.</div>';
@@ -567,8 +588,10 @@ function shotsHTML(){
 }
 function settingsHTML(){
   return '<h4 class="lbl">Units</h4><div class="seg"><button class="'+(S.units==='m'?'on':'')+'" data-act="units" data-v="m">Metres</button><button class="'+(S.units==='y'?'on':'')+'" data-act="units" data-v="y">Yards</button></div>'+
+  '<h4 class="lbl" style="margin-top:18px">I hit</h4><div class="seg"><button class="'+(S.lefty?'':'on')+'" data-act="hand" data-v="0">Right-handed</button><button class="'+(S.lefty?'on':'')+'" data-act="hand" data-v="1">Left-handed</button></div>'+
   '<h4 class="lbl" style="margin-top:18px">Scorecard</h4><div class="seg"><button class="'+(S.stats?'':'on')+'" data-act="togstats" data-v="0">Score only</button><button class="'+(S.stats?'on':'')+'" data-act="togstats" data-v="1">Putts, fairways, greens</button></div>'+
   '<div class="hint" style="margin-top:18px"><b>How the caddy thinks.</b> It adjusts the distance for wind (about 1% per mph into the wind, half that downwind), cold air (about 2% per 10°C), rain, rough or sand, and slope, then picks the club whose carry plus roll matches. The green oval is where about 80% of your shots with that club should finish; it starts as an estimate and learns from the shots you log. These are rules of thumb. Your logged shots make it more accurate.</div>'+
+  '<div class="hint">Weather: Open-Meteo. Height above sea level and slope between you and the target: Copernicus DEM (90 m grid) via Open-Meteo, so slope can be a few metres off; you can always correct it. Map imagery: Esri.</div>'+
   '<div style="margin-top:12px"><button class="sec" data-act="resetAll">Reset all my data</button></div>';
 }
 
@@ -590,7 +613,10 @@ function act(a,b){
     case 'mode':c.mode=v;break;
     case 'lie':c.lie=Number(v);break;
     case 'tilt':c.tilt=Number(v);break;
-    case 'elev':c.elev=Math.round((c.elev+toM(1)*Number(v))*10)/10;break;
+    case 'stance':c.stance=Number(v);break;
+    case 'ballh':c.ballh=Number(v);break;
+    case 'hand':S.lefty=v==='1';save();openPanel('settings');refresh();return;
+    case 'elev':R.elevSrc='manual';c.elev=Math.round((c.elev+toM(1)*Number(v))*10)/10;break;
     case 'pinmode':R.placePin=true;break;
     case 'clearpin':R.pin=null;rmKey('p');break;
     case 'lay':startLay();return;
@@ -659,7 +685,7 @@ $('#grab').addEventListener('click',()=>{R.expanded=!R.expanded;renderSheet();})
 function openSetup(){$('#mcard').innerHTML='<h3>Welcome to Caddy</h3><div class="sub" style="margin:8px 0 14px">One question to start: how far do you hit your 7 iron? Every other club is set from it, and you can change them anytime in Bag.</div><div class="field"><input type="number" inputmode="decimal" id="q7s" value="'+d1(130)+'"><div class="sub" style="margin-top:6px">in '+(S.units==='y'?'yards':'metres')+'</div></div><button class="cta" data-act="setup7">Start</button><div class="center"><button class="link" data-act="skipSetup">Use the defaults for now</button></div>';$('#modal').hidden=false;}
 renderSheet();startGPS();if(!S.setup)setTimeout(openSetup,400);
 try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
-window.__caddy={startLay,moveLay,endLay,S,R,calc,recommend,setMe,placeTarget,placePinAt,refresh,spread,activeCtx,ln};
+window.__caddy={doElev,startLay,moveLay,endLay,S,R,calc,recommend,setMe,placeTarget,placePinAt,refresh,spread,activeCtx,ln};
 })();
 </script>
 </body>
