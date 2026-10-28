@@ -148,7 +148,7 @@ function defaultClubs(){
   return d.map((c,i)=>({id:'c'+i,name:c[0],carry:c[1],roll:c[2],on:true}));
 }
 function defaults(){return{units:'m',clubs:defaultClubs(),setup:false,rlog:[],rsel:null,wxAuto:true,wxTime:0,round:null,rounds:[],disp:1,miss:{},nh:9,
-  cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,mode:'auto'},wxOk:false,stats:false,hist:{},log:[],pending:null,nid:100};}
+  cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,tilt:0,mode:'auto'},wxOk:false,stats:false,hist:{},log:[],pending:null,nid:100};}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs){S=Object.assign(defaults(),j);S.cond=Object.assign(defaults().cond,j.cond||{});if(S.cond.mode==='approach'&&!j.v2)S.cond.mode='auto';S.v2=1;}}catch(e){}
 function save(){try{S.v2=1;localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -225,7 +225,7 @@ function setMe(ll,acc){
   refresh();
 }
 function placeTarget(ll){
-  R.target=ll;R.sel=null;S.cond.lie=0;S.cond.elev=0;
+  R.target=ll;R.sel=null;S.cond.lie=0;S.cond.elev=0;S.cond.tilt=0;
   if(!mk.t){mk.t=L.marker(ll,{icon:dIcon('tg','',[30,30]),draggable:true,zIndexOffset:900}).addTo(map);mk.t.on('drag',e=>{R.target=e.target.getLatLng();refresh();});}
   else mk.t.setLatLng(ll);
   refresh();
@@ -331,6 +331,7 @@ function spread(club){
   return{lat:prior.lat,dep:prior.dep,learned:false,n:0};
 }
 function expDist(r,club){return Math.max(0,(club.reach-S.cond.elev)/(1+r.pct));}
+function lateral(r,club){const dC=expDist(r,club);const wind=-r.cross*dC*0.004,slope=(S.cond.tilt||0)*0.25*club.roll*r.rollMult;return{wind:wind,slope:slope,total:wind+slope};}
 function activeCtx(){
   const aim=R.lay||R.target||R.pin;if(!R.me||!aim)return null;
   const D=dist(R.me,aim),brg=bearing(R.me,aim),r=recommend(D,brg);
@@ -342,7 +343,7 @@ function drawZone(){
   if(ln.zone){map.removeLayer(ln.zone);ln.zone=null;}
   const cx=activeCtx();if(!cx||!cx.club)return;
   const {r,club,brg}=cx,sp=spread(club),dC=expDist(r,club);
-  const across0=-r.cross*dC*0.004;
+  const across0=lateral(r,club).total;
   const sb=Math.sin(brg*rad),cb=Math.cos(brg*rad),pts=[];
   for(let i=0;i<36;i++){
     const t=i/36*2*Math.PI,along=dC+sp.dep*Math.cos(t),across=across0+sp.lat*Math.sin(t);
@@ -374,13 +375,15 @@ function sheetHTML(){
     h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+(mine?'Your pick':(R.lay?'Lay-up':(r.best?MODES[r.mode].n:'Out of range')))+'</div><button class="clubbtn" data-act="picker">'+esc(club.name)+'<span> ▾</span></button>';
   }else h+='<div class="club">No clubs</div>';
   h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">plays like '+d1(r.plays)+' '+unit+'</div></div></div>';
-  if(r.drift>=2)h+='<div class="aim">↔ Aim '+d1(r.drift)+' '+unit+' '+(r.cross>0?'right':'left')+' for the crosswind</div>';
+  const lt=club?lateral(r,club):null;
+  if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push('crosswind');if(Math.abs(lt.slope)>=1)why.push('slope');h+='<div class="aim">↔ Aim '+d1(Math.abs(lt.total))+' '+unit+' '+(lt.total<0?'right':'left')+' for the '+why.join(' and ')+'</div>';}
   const p=r.parts,bits=[],sg=v=>(v>0?'+':'')+d1(v);
   if(Math.abs(p.wind)>=1)bits.push((r.head>=0?'Headwind ':'Tailwind ')+sg(p.wind));
   if(Math.abs(p.temp)>=1)bits.push((p.temp>0?'Cold ':'Warm ')+sg(p.temp));
   if(p.rain>=1)bits.push('Rain '+sg(p.rain));
   if(p.lie>=1)bits.push(LIES[S.cond.lie].n+' '+sg(p.lie));
   if(Math.abs(p.elev)>=1)bits.push((p.elev>0?'Uphill ':'Downhill ')+sg(p.elev));
+  if(lt&&Math.abs(lt.slope)>=1)bits.push('Side slope '+(lt.slope<0?'left ':'right ')+d1(Math.abs(lt.slope)));
   h+='<div class="why">'+(bits.length?bits.join(' · ')+' '+unit:'No adjustments. Conditions are neutral.')+'</div>';
   if(club){
     const dC=expDist(r,club),diff=dC-D;
@@ -389,7 +392,7 @@ function sheetHTML(){
   }
   if(R.lay&&(R.target||R.pin))h+='<div class="why">Leaves <b>'+d1(dist(R.lay,R.target||R.pin))+' '+unit+'</b> to the '+(R.pin?'pin':'target')+'. Tap the map or drag the amber circle to choose your line.</div>';
   h+=wxChips(r);
-  if(club)h+='<button class="cta" data-act="hit" data-club="'+club.id+'" data-d="'+Math.round(D)+'" data-e="'+Math.round(expDist(r,club))+'" data-a="'+(-r.cross*expDist(r,club)*0.004).toFixed(1)+'">Hit '+esc(club.name)+'</button>';
+  if(club)h+='<button class="cta" data-act="hit" data-club="'+club.id+'" data-d="'+Math.round(D)+'" data-e="'+Math.round(expDist(r,club))+'" data-a="'+lateral(r,club).total.toFixed(1)+'">Hit '+esc(club.name)+'</button>';
   h+='<div class="center">'+(R.lay?'<button class="link" data-act="unlay">✕ Back to target</button>':'<button class="link" data-act="lay">Lay up</button>')+'<button class="link" data-act="more">'+(R.expanded?'Hide details ▴':'Details ▾')+'</button></div>';
   if(R.expanded)h+=detailsHTML(r);
   return h;
@@ -407,6 +410,7 @@ function detailsHTML(r){
   const c=S.cond,unit=ul();let h='<div class="det">';
   h+='<h4>Lie</h4><div class="seg">'+LIES.map((l,i)=>'<button class="'+(c.lie===i?'on':'')+'" data-act="lie" data-v="'+i+'">'+l.n+'</button>').join('')+'</div>';
   h+='<h4>Slope to target</h4><div class="stepper"><button data-act="elev" data-v="-1">−</button><div class="v">'+(c.elev>0?'+':'')+d1(c.elev)+'<small> '+unit+'</small></div><button data-act="elev" data-v="1">+</button></div><div class="sub" style="margin-top:6px">Uphill is positive. Downhill is negative.</div>';
+  h+='<h4>Which way would the ball roll after landing?</h4><div class="seg">'+[[-2,'← a lot'],[-1,'← a bit'],[0,'Not at all'],[1,'a bit →'],[2,'a lot →']].map(x=>'<button class="'+((c.tilt||0)===x[0]?'on':'')+'" data-act="tilt" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
   h+='<h4>Pin</h4><div class="row">'+(R.placePin?'<span class="sub">Tap the map to place the pin…</span>':'<button class="sec" data-act="pinmode">⛳ '+(R.pin?'Move pin':'Place pin')+'</button>')+(R.pin?'<button class="sec" data-act="clearpin">Remove pin</button>':'')+(R.target?'<button class="sec" data-act="cleartarget">Clear target</button>':'')+'</div>';
   if(R.target&&R.pin)h+='<div class="sub" style="margin-top:8px">Pin is '+d1(dist(R.target,R.pin))+' '+unit+' past your target.</div>';
   return h+'</div>';
@@ -585,6 +589,7 @@ function act(a,b){
     case 'more':R.expanded=!R.expanded;break;
     case 'mode':c.mode=v;break;
     case 'lie':c.lie=Number(v);break;
+    case 'tilt':c.tilt=Number(v);break;
     case 'elev':c.elev=Math.round((c.elev+toM(1)*Number(v))*10)/10;break;
     case 'pinmode':R.placePin=true;break;
     case 'clearpin':R.pin=null;rmKey('p');break;
