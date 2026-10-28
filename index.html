@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1f14">
+<title>Caddy – Golf GPS &amp; Club Advisor</title>
+<style>
+@import url("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
+:root{--bg:#0b1f14;--card:#12301f;--card2:#184029;--ink:#eef7f0;--mut:#9bb8a5;--acc:#7CFC9A;--warn:#ffd166;--bad:#ff7b72;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100dvh;padding-top:env(safe-area-inset-top)}
+#mapwrap{position:relative;flex:1;min-height:150px}
+#map{position:absolute;inset:0;background:#0d2a1a}
+#hud{position:absolute;z-index:1000;top:8px;left:8px;right:8px;display:flex;gap:6px;justify-content:space-between;pointer-events:none}
+#hud>*{pointer-events:auto}
+.pill{background:rgba(11,31,20,.88);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 11px;font-size:12.5px;color:var(--ink);backdrop-filter:blur(6px)}
+.seg{display:flex;gap:2px;background:rgba(11,31,20,.88);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--mut);padding:6px 11px;border-radius:999px;font-size:13px;font-weight:600}
+.seg button.on{background:var(--acc);color:#06210f}
+#locate{position:absolute;z-index:1000;right:8px;bottom:8px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(11,31,20,.9);color:var(--ink);font-size:20px}
+#sheet{background:var(--bg);border-top:1px solid rgba(255,255,255,.1);padding:10px 12px 6px;overflow-y:auto;max-height:46dvh;flex:none}
+#sheet.tall{max-height:72dvh}
+nav{display:flex;background:#08170e;border-top:1px solid rgba(255,255,255,.08);padding-bottom:env(safe-area-inset-bottom);flex:none}
+nav button{flex:1;border:0;background:transparent;color:var(--mut);padding:9px 0 8px;font-size:11.5px;font-weight:600}
+nav button span{display:block;font-size:19px;line-height:1.1}
+nav button.on{color:var(--acc)}
+.card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid rgba(255,255,255,.14);background:var(--card);color:var(--ink);padding:7px 11px;border-radius:999px;font-size:13px;font-weight:600}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#06210f}
+.club{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1.05}
+.big{font-size:24px;font-weight:800}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.grid3>div{background:var(--card2);border-radius:10px;padding:8px}
+.note{font-size:13px;color:var(--mut);margin:2px 0}
+.note b{color:var(--ink)}
+.warn{color:var(--warn)}.bad{color:var(--bad)}.ok{color:var(--acc)}
+button.main{border:0;background:var(--acc);color:#06210f;font-weight:800;font-size:15px;padding:12px 16px;border-radius:12px;width:100%}
+button.sec{border:1px solid rgba(255,255,255,.2);background:transparent;color:var(--ink);font-weight:700;padding:10px 14px;border-radius:12px}
+button.sm{padding:6px 10px;font-size:12px;border-radius:9px}
+input,select{background:#0b1f14;color:var(--ink);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:8px;font-size:15px;width:100%;min-width:0}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc)}
+label.f{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bag{display:grid;grid-template-columns:minmax(80px,1.5fr) 1fr 1fr 28px 30px;gap:6px;align-items:center;margin-bottom:6px}
+.bag.h{font-size:11px;color:var(--mut);text-transform:uppercase}
+.dirs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:var(--card);color:var(--ink);font-size:18px}
+.stepper b{min-width:44px;text-align:center}
+.tag{white-space:nowrap;background:rgba(0,0,0,.55);color:#fff;border:0;border-radius:8px;font-weight:800;font-size:13px;padding:2px 7px}
+.me{width:18px;height:18px;border-radius:50%;background:#3aa0ff;border:3px solid #fff;box-shadow:0 0 0 3px rgba(58,160,255,.35)}
+.tg{width:26px;height:26px;border-radius:50%;border:3px solid #fff;background:rgba(255,80,80,.85);box-shadow:0 0 6px #000}
+.pn{font-size:26px;filter:drop-shadow(0 1px 2px #000);line-height:1}
+.leaflet-container{font:inherit}
+.leaflet-control-attribution{font-size:9px!important}
+.h2{font-weight:800;font-size:16px;margin:2px 0 8px}
+.small{font-size:12px;color:var(--mut)}
+hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:10px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="mapwrap">
+    <div id="map"></div>
+    <div id="hud">
+      <div class="pill" id="gps">GPS: starting…</div>
+      <div class="seg" id="tapmode">
+        <button data-m="target" class="on">🎯 Target</button>
+        <button data-m="pin">⛳ Pin</button>
+        <button data-m="me">📍 Me</button>
+      </div>
+    </div>
+    <button id="locate" title="Centre on me">◎</button>
+  </div>
+  <div id="sheet"></div>
+  <nav id="nav">
+    <button data-t="caddy" class="on"><span>🏌️</span>Caddy</button>
+    <button data-t="cond"><span>🌬️</span>Conditions</button>
+    <button data-t="bag"><span>🎒</span>My bag</button>
+    <button data-t="log"><span>📊</span>Shots</button>
+  </nav>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const M2Y=1.09361, KMH_MPH=1.609;
+const KEY='caddy.v1';
+
+/* ---------- state ---------- */
+function defaultClubs(){
+  // metres (carry, roll) – placeholders for a mid-handicap golfer. Edit in "My bag".
+  const d=[['Driver',200,20],['3 Wood',180,15],['5 Wood',168,12],['4 Hybrid',160,10],['5 Iron',150,8],['6 Iron',140,7],['7 Iron',130,6],['8 Iron',120,5],['9 Iron',110,4],['Pitching Wedge',100,3],['Gap Wedge',88,3],['Sand Wedge',72,2],['Lob Wedge',55,1]];
+  return d.map((c,i)=>({id:'c'+i,name:c[0],carry:c[1],roll:c[2],on:true}));
+}
+function defaults(){return{units:'m',tab:'caddy',clubs:defaultClubs(),
+  cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,mode:'approach'},
+  hist:{},log:[],pending:null,nid:100};}
+let S=defaults();
+try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs){S=Object.assign(defaults(),j);S.cond=Object.assign(defaults().cond,j.cond||{});}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const R={me:null,acc:null,target:null,pin:null,manual:false,tapMode:'target'};
+
+/* ---------- units ---------- */
+const U=()=>S.units==='y'?M2Y:1;
+const ul=()=>S.units==='y'?'yd':'m';
+const wl=()=>S.units==='y'?'mph':'km/h';
+const d1=m=>Math.round(m*U());
+const toM=v=>v/U();
+const wDisp=k=>S.units==='y'?Math.round(k/KMH_MPH):Math.round(k);
+const wFrom=v=>S.units==='y'?v*KMH_MPH:v;
+
+/* ---------- geometry ---------- */
+const rad=Math.PI/180;
+function dist(a,b){const dLa=(b.lat-a.lat)*rad,dLn=(b.lng-a.lng)*rad;const x=Math.sin(dLa/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLn/2)**2;return 2*6371000*Math.asin(Math.sqrt(x));}
+function bearing(a,b){const y=Math.sin((b.lng-a.lng)*rad)*Math.cos(b.lat*rad);const x=Math.cos(a.lat*rad)*Math.sin(b.lat*rad)-Math.sin(a.lat*rad)*Math.cos(b.lat*rad)*Math.cos((b.lng-a.lng)*rad);return (Math.atan2(y,x)/rad+360)%360;}
+
+/* ---------- caddy brain ---------- */
+const LIES=[{n:'Tee / fairway',add:0,roll:1},{n:'Light rough',add:.05,roll:.7},{n:'Heavy rough',add:.12,roll:.5},{n:'Fairway bunker',add:.12,roll:.4}];
+const MODES={carry:{n:'Carry it',w:0},approach:{n:'Approach',w:.35},total:{n:'Tee / lay-up',w:1}};
+const DIRS=[['N',0],['NE',45],['E',90],['SE',135],['S',180],['SW',225],['W',270],['NW',315]];
+
+function calc(D,brg){
+  const c=S.cond,mph=c.windKmh/KMH_MPH;
+  let head=0,cross=0;
+  if(brg!=null){const th=(c.windFrom-brg)*rad;head=mph*Math.cos(th);cross=mph*Math.sin(th);}
+  const windPct=head>=0?head*0.01:head*0.005;       // headwind hurts ~2x more than tailwind helps
+  const tempPct=(20-c.temp)*0.002;                   // ~2% per 10°C colder than 20°C
+  const rainPct=[0,0.02,0.04][c.rain];
+  const lie=LIES[c.lie];
+  const pct=windPct+tempPct+rainPct+lie.add;
+  const plays=D*(1+pct)+c.elev;
+  const rollMult=[0.6,1,1.3][c.ground]*[1,0.6,0.35][c.rain]*lie.roll;
+  const drift=Math.abs(cross)*D*0.004;               // ≈0.4 yd per mph per 100 yd
+  return{D,plays,pct,rollMult,head,cross,drift,
+    parts:{wind:D*windPct,temp:D*tempPct,rain:D*rainPct,lie:D*lie.add,elev:c.elev}};
+}
+function recommend(D,brg){
+  const r=calc(D,brg),w=MODES[S.cond.mode].w;
+  const cl=S.clubs.filter(x=>x.on).map(x=>Object.assign({},x,{reach:x.carry+w*x.roll*r.rollMult})).sort((a,b)=>a.reach-b.reach);
+  r.list=cl;if(!cl.length)return r;
+  let best=null;
+  if(S.cond.mode==='carry'){best=cl.find(x=>x.reach>=r.plays*1.03)||null;}
+  else{let bs=1e9;cl.forEach(x=>{const d=x.reach-r.plays,s=d>=0?d:-d*1.5;if(s<bs){bs=s;best=x;}});
+    if(best&&best.reach<r.plays*0.9)best=null;}
+  if(best){const i=cl.indexOf(best);r.best=best;r.shorter=cl[i-1]||null;r.longer=cl[i+1]||null;
+    r.swing=(r.plays-w*best.roll*r.rollMult)/best.carry;}
+  else{r.longest=cl[cl.length-1];r.leave=r.plays-r.longest.reach;}
+  return r;
+}
+
+/* ---------- map ---------- */
+const map=L.map('map',{zoomControl:false,attributionControl:true,maxZoom:20}).setView([38.7223,-9.1393],15);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:19,maxZoom:20,attribution:'Imagery © Esri'}).addTo(map);
+const mk={};const ln={};
+function divIcon(cls,html,sz){return L.divIcon({className:'',html:'<div class="'+cls+'">'+(html||'')+'</div>',iconSize:sz,iconAnchor:[sz[0]/2,sz[1]/2]});}
+function setMe(ll,acc){
+  R.me=ll;R.acc=acc||null;
+  if(!mk.me){mk.me=L.marker(ll,{icon:divIcon('me','',[18,18]),zIndexOffset:1000}).addTo(map);mk.acc=L.circle(ll,{radius:acc||10,color:'#3aa0ff',weight:1,fillOpacity:.1}).addTo(map);map.setView(ll,18);}
+  else{mk.me.setLatLng(ll);mk.acc.setLatLng(ll).setRadius(acc||10);}
+  refreshLines();
+}
+function placeTarget(ll){R.target=ll;
+  if(!mk.t){mk.t=L.marker(ll,{icon:divIcon('tg','',[26,26]),draggable:true,zIndexOffset:900}).addTo(map);mk.t.on('drag',e=>{R.target=e.target.getLatLng();refreshLines();});}
+  else mk.t.setLatLng(ll);
+  refreshLines();}
+function placePin(ll){R.pin=ll;
+  if(!mk.p){mk.p=L.marker(ll,{icon:divIcon('pn','⛳',[26,26]),draggable:true,zIndexOffset:800}).addTo(map);mk.p.on('drag',e=>{R.pin=e.target.getLatLng();refreshLines();});}
+  else mk.p.setLatLng(ll);
+  refreshLines();}
+function tag(ll,text,key,off){
+  if(!mk[key]){mk[key]=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="tag">'+text+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:700}).addTo(map);}
+  else{mk[key].setLatLng(ll);mk[key].setIcon(L.divIcon({className:'',html:'<div class="tag">'+text+'</div>',iconSize:[0,0]}));}
+}
+function refreshLines(){
+  ['l1','l2','tg1','tg2'].forEach(k=>{if(k.startsWith('l')&&ln[k]){map.removeLayer(ln[k]);ln[k]=null;}});
+  const aim=R.target||R.pin;
+  if(R.me&&aim){ln.l1=L.polyline([R.me,aim],{color:'#fff',weight:2.5,opacity:.9}).addTo(map);
+    const mid=L.latLng((R.me.lat+aim.lat)/2,(R.me.lng+aim.lng)/2);tag(mid,d1(dist(R.me,aim))+' '+ul(),'tg1');}
+  else if(mk.tg1){map.removeLayer(mk.tg1);mk.tg1=null;}
+  if(R.target&&R.pin){ln.l2=L.polyline([R.target,R.pin],{color:'#ffd166',weight:2.5,dashArray:'6 6'}).addTo(map);
+    const mid=L.latLng((R.target.lat+R.pin.lat)/2,(R.target.lng+R.pin.lng)/2);tag(mid,d1(dist(R.target,R.pin))+' '+ul(),'tg2');}
+  else if(mk.tg2){map.removeLayer(mk.tg2);mk.tg2=null;}
+  updateOut();
+}
+map.on('click',e=>{
+  const m=R.tapMode;
+  if(m==='target')placeTarget(e.latlng);
+  else if(m==='pin')placePin(e.latlng);
+  else if(m==='me'){R.manual=true;setMe(e.latlng,5);gpsMsg('Manual position');setTapMode('target');}
+});
+function setTapMode(m){R.tapMode=m;document.querySelectorAll('#tapmode button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));}
+$('#tapmode').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTapMode(b.dataset.m);});
+$('#locate').addEventListener('click',()=>{R.manual=false;if(R.me)map.setView(R.me,Math.max(map.getZoom(),18));startGPS(true);});
+
+/* ---------- GPS ---------- */
+let watchId=null;
+function gpsMsg(t){$('#gps').textContent=t;}
+function startGPS(restart){
+  if(!navigator.geolocation){gpsMsg('No GPS – use 📍 Me');return;}
+  if(watchId!=null){if(!restart)return;navigator.geolocation.clearWatch(watchId);}
+  gpsMsg('GPS: searching…');
+  watchId=navigator.geolocation.watchPosition(p=>{
+    if(R.manual)return;
+    setMe({lat:p.coords.latitude,lng:p.coords.longitude},p.coords.accuracy);
+    gpsMsg('GPS ±'+Math.round(p.coords.accuracy*U())+ul());
+  },err=>{gpsMsg('GPS blocked – use 📍 Me');},{enableHighAccuracy:true,maximumAge:1000,timeout:25000});
+}
+
+/* ---------- UI ---------- */
+const sheet=$('#sheet');
+function setTab(t){S.tab=t;save();document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));render();}
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);});
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function render(){
+  sheet.classList.toggle('tall',S.tab!=='caddy');
+  if(S.tab==='caddy')sheet.innerHTML=caddyHTML();
+  else if(S.tab==='cond')sheet.innerHTML=condHTML();
+  else if(S.tab==='bag')sheet.innerHTML=bagHTML();
+  else sheet.innerHTML=logHTML();
+  if(S.tab==='caddy')updateOut();
+  setTimeout(()=>map.invalidateSize(),60);
+}
+
+function caddyHTML(){
+  const c=S.cond;
+  return '<div id="caddyOut"></div>'+
+  '<div class="chips" style="margin-bottom:8px">'+Object.keys(MODES).map(k=>'<button class="chip'+(c.mode===k?' on':'')+'" data-act="mode" data-v="'+k+'">'+MODES[k].n+'</button>').join('')+'</div>'+
+  '<div class="two" style="margin-bottom:8px"><div><label class="f">Lie</label><select data-f="lie">'+LIES.map((l,i)=>'<option value="'+i+'"'+(c.lie===i?' selected':'')+'>'+l.n+'</option>').join('')+'</select></div>'+
+  '<div><label class="f">Uphill (+) / downhill (−) in '+ul()+'</label><div class="stepper"><button data-act="elev" data-v="-1">−</button><b>'+(c.elev>0?'+':'')+d1(c.elev)+'</b><button data-act="elev" data-v="1">+</button></div></div></div>'+
+  '<div class="small" style="padding-bottom:6px">Wind '+wDisp(c.windKmh)+' '+wl()+' from '+nearestDir(c.windFrom)+' · '+c.temp+'°C · '+['dry','light rain','heavy rain'][c.rain]+' — change in <b>Conditions</b>.</div>';
+}
+function angd(a,b){return Math.abs(((a-b+540)%360)-180);}
+function nearestDir(deg){return DIRS.reduce((a,b)=>angd(deg,a[1])<=angd(deg,b[1])?a:b)[0];}
+
+function updateOut(){
+  const el=$('#caddyOut');if(!el||S.tab!=='caddy')return;
+  const aim=R.target||R.pin;
+  if(S.pending){
+    const cl=S.clubs.find(x=>x.id===S.pending.club);
+    let h='<div class="card"><div class="lbl">Shot in progress</div><div class="big">'+esc(cl?cl.name:'Club')+'</div>';
+    if(R.me){h+='<div class="note">Walk to your ball, then tap below to measure the real distance.</div>';}
+    h+='<div class="row" style="margin-top:8px"><button class="main" style="flex:2" data-act="mark">📏 Ball is here — measure</button><button class="sec" style="flex:1" data-act="cancelHit">Cancel</button></div></div>';
+    el.innerHTML=h;return;
+  }
+  if(!R.me){el.innerHTML='<div class="card"><div class="club">Waiting for GPS…</div><div class="note">Allow location access. Indoors or no signal? Switch the map to <b>📍 Me</b> and tap where you stand.</div></div>';return;}
+  if(!aim){el.innerHTML='<div class="card"><div class="club">Tap the map</div><div class="note">Choose <b>🎯 Target</b> and tap where you want the ball to land (drag to adjust). Add <b>⛳ Pin</b> to see what\'s left after it.</div></div>';return;}
+  const D=dist(R.me,aim),brg=bearing(R.me,aim),r=recommend(D,brg);
+  const unit=ul();let h='<div class="card">';
+  if(r.best){
+    h+='<div class="lbl">Take</div><div class="club">'+esc(r.best.name)+'</div>';
+  }else if(r.longest){
+    h+='<div class="lbl bad">Out of range</div><div class="club">'+esc(r.longest.name)+'</div><div class="note">Even your longest club reaches ~'+d1(r.longest.reach)+' '+unit+' here. Lay up and leave ~'+d1(Math.max(0,r.leave))+' '+unit+' (plays-like).</div>';
+  }else h+='<div class="club">No clubs enabled</div>';
+  h+='<div class="grid3"><div><div class="lbl">Distance</div><div class="big">'+d1(D)+'</div></div><div><div class="lbl">Plays like</div><div class="big">'+d1(r.plays)+'</div></div><div><div class="lbl">Aim</div><div class="big" style="font-size:'+(r.drift>=2?'18':'24')+'px">'+(r.drift>=2?d1(r.drift)+' '+(r.cross>0?'right':'left'):'Dead')+'</div></div></div>';
+  if(r.best){
+    if(r.swing<0.95)h+='<div class="note warn"><b>Smooth ~'+Math.round(r.swing*100)+'% swing</b> – the club is longer than needed.</div>';
+    else if(r.swing>1.03)h+='<div class="note warn"><b>Full swing</b> – only about '+d1(r.best.reach)+' '+unit+' reach; slightly short.</div>';
+    const alt=[];if(r.shorter)alt.push('shorter: '+esc(r.shorter.name)+' ('+d1(r.shorter.reach)+')');if(r.longer)alt.push('longer: '+esc(r.longer.name)+' ('+d1(r.longer.reach)+')');
+    if(alt.length)h+='<div class="note">Alternatives – '+alt.join(' · ')+'</div>';
+  }
+  const p=r.parts,nt=[];
+  const sg=v=>(v>0?'+':'')+d1(v);
+  if(Math.abs(p.wind)>=1)nt.push((r.head>=0?'Headwind':'Tailwind')+' '+Math.round(Math.abs(r.head)*KMH_MPH/(S.units==='y'?KMH_MPH:1))+' '+wl()+' → '+sg(p.wind)+' '+unit);
+  if(r.drift>=2)nt.push('Crosswind '+Math.round(Math.abs(r.cross)*(S.units==='y'?1:KMH_MPH))+' '+wl()+' → drifts ~'+d1(r.drift)+' '+unit+(r.cross>0?' left':' right'));
+  if(Math.abs(p.temp)>=1)nt.push((p.temp>0?'Cold':'Warm')+' air → '+sg(p.temp)+' '+unit);
+  if(p.rain>=1)nt.push('Rain → '+sg(p.rain)+' '+unit+', less roll');
+  if(p.lie>=1)nt.push(LIES[S.cond.lie].n+' → '+sg(p.lie)+' '+unit);
+  if(Math.abs(p.elev)>=1)nt.push((p.elev>0?'Uphill':'Downhill')+' → '+sg(p.elev)+' '+unit);
+  if(nt.length)h+='<div class="note">'+nt.join('<br>')+'</div>';
+  if(R.target&&R.pin)h+='<div class="note">After target, pin is <b>'+d1(dist(R.target,R.pin))+' '+unit+'</b> away.</div>';
+  if(r.best)h+='<button class="main" style="margin-top:10px" data-act="hit" data-club="'+r.best.id+'" data-d="'+Math.round(D)+'">⛳ I\'m hitting '+esc(r.best.name)+'</button>';
+  h+='</div>';el.innerHTML=h;
+}
+
+function condHTML(){
+  const c=S.cond;
+  let rel='';
+  const aim=R.target||R.pin;
+  if(R.me&&aim){const r=calc(dist(R.me,aim),bearing(R.me,aim));rel='<div class="note">Relative to your current shot: <b>'+(r.head>=0?'headwind':'tailwind')+'</b> '+Math.round(Math.abs(r.head)*(S.units==='y'?1:KMH_MPH))+' '+wl()+', cross '+Math.round(Math.abs(r.cross)*(S.units==='y'?1:KMH_MPH))+' '+wl()+(Math.abs(r.cross)>0.5?(r.cross>0?' (from the right)':' (from the left)'):'')+'</div>';}
+  return '<div class="h2">Conditions</div>'+
+  '<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Wind</b><button class="sec sm" data-act="weather">☁️ Auto-fill from weather</button></div>'+
+  '<div class="two"><div><label class="f">Speed ('+wl()+')</label><input type="number" inputmode="decimal" min="0" data-f="wind" value="'+wDisp(c.windKmh)+'"></div>'+
+  '<div><label class="f">Temperature (°C)</label><input type="number" inputmode="decimal" data-f="temp" value="'+c.temp+'"></div></div>'+
+  '<label class="f" style="margin-top:10px">Wind coming FROM (compass)</label><div class="dirs">'+DIRS.map(d=>'<button class="chip'+(nearestDir(c.windFrom)===d[0]?' on':'')+'" data-act="wdir" data-v="'+d[1]+'">'+d[0]+'</button>').join('')+'</div>'+rel+
+  '<div class="small" style="margin-top:6px">Tip: stand on the tee, face the target, and judge from the flag or treetops – the app does the maths relative to your shot.</div></div>'+
+  '<div class="card"><label class="f">Rain</label><div class="chips">'+['Dry','Light','Heavy'].map((n,i)=>'<button class="chip'+(c.rain===i?' on':'')+'" data-act="rain" data-v="'+i+'">'+n+'</button>').join('')+'</div>'+
+  '<label class="f" style="margin-top:10px">Ground</label><div class="chips">'+['Soft','Normal','Firm / fast'].map((n,i)=>'<button class="chip'+(c.ground===i?' on':'')+'" data-act="ground" data-v="'+i+'">'+n+'</button>').join('')+'</div></div>'+
+  '<div class="card"><label class="f">Units</label><div class="chips"><button class="chip'+(S.units==='m'?' on':'')+'" data-act="units" data-v="m">Metres</button><button class="chip'+(S.units==='y'?' on':'')+'" data-act="units" data-v="y">Yards</button></div></div>'+
+  '<div class="small">The caddy uses rules of thumb (about 1% per mph of headwind, half that for tailwind, ~2% per 10°C of cold, 1:1 for slope). Your own logged shots make it more accurate.</div>';
+}
+
+function bagHTML(){
+  const hist=S.hist;
+  let h='<div class="h2">My bag <span class="small">('+ul()+')</span></div><div class="small" style="margin-bottom:8px">Carry = how far it flies. Roll = how far it runs after landing. Untick a club to leave it out.</div>';
+  h+='<div class="bag h"><div>Club</div><div>Carry</div><div>Roll</div><div>On</div><div></div></div>';
+  S.clubs.forEach(c=>{
+    h+='<div class="bag"><input data-f="cname" data-id="'+c.id+'" value="'+esc(c.name)+'">'+
+    '<input type="number" inputmode="decimal" data-f="ccarry" data-id="'+c.id+'" value="'+d1(c.carry)+'">'+
+    '<input type="number" inputmode="decimal" data-f="croll" data-id="'+c.id+'" value="'+d1(c.roll)+'">'+
+    '<input type="checkbox" data-f="con" data-id="'+c.id+'"'+(c.on?' checked':'')+'>'+
+    '<button class="sec sm" data-act="delClub" data-id="'+c.id+'">✕</button></div>';
+    const hs=hist[c.id];
+    if(hs&&hs.length>=2){const avg=hs.reduce((a,b)=>a+b,0)/hs.length,tot=c.carry+c.roll;
+      h+='<div class="small" style="margin:-2px 0 8px 4px">Measured total avg <b class="ok">'+d1(avg)+'</b> over '+hs.length+' shots (set: '+d1(tot)+') <button class="sec sm" data-act="calib" data-id="'+c.id+'">Calibrate</button></div>';}
+  });
+  h+='<div class="row" style="margin-top:8px"><button class="sec" data-act="addClub">＋ Add club</button><button class="sec" data-act="resetBag">Reset defaults</button></div>'+
+  '<div class="small" style="margin-top:10px">Defaults are rough placeholders for a mid-handicap golfer – enter your own numbers (from a launch monitor, range session, or just your best guess), then let the Shots tab refine them.</div>';
+  return h;
+}
+
+function logHTML(){
+  let h='<div class="h2">Shots</div>';
+  if(!S.log.length)h+='<div class="card"><div class="note">No shots yet. On the Caddy tab tap <b>“I\'m hitting …”</b>, play the shot, walk to your ball and tap <b>“Ball is here”</b>. The GPS distance is stored per club, and the Bag tab can calibrate itself from it.</div></div>';
+  else{
+    h+='<div class="card">';
+    S.log.slice().reverse().slice(0,40).forEach(s=>{const c=S.clubs.find(x=>x.id===s.club);
+      h+='<div class="row" style="justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);padding:6px 0"><span><b>'+esc(c?c.name:s.name||'?')+'</b></span><span>'+d1(s.actual)+' '+ul()+' <span class="small">(planned '+d1(s.planned)+')</span></span></div>';});
+    h+='</div><button class="sec" data-act="clearLog">Clear shot history</button>';
+  }
+  return h;
+}
+
+/* ---------- events ---------- */
+sheet.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,v=b.dataset.v,c=S.cond;
+  if(a==='mode'){c.mode=v;}
+  else if(a==='elev'){c.elev+=toM(1)*Number(v)*(S.units==='y'?1:1);c.elev=Math.round(c.elev*10)/10;}
+  else if(a==='wdir'){c.windFrom=Number(v);}
+  else if(a==='rain'){c.rain=Number(v);}
+  else if(a==='ground'){c.ground=Number(v);}
+  else if(a==='units'){S.units=v;}
+  else if(a==='hit'){S.pending={club:b.dataset.club,start:R.me?{lat:R.me.lat,lng:R.me.lng}:null,planned:Number(b.dataset.d)};}
+  else if(a==='cancelHit'){S.pending=null;}
+  else if(a==='mark'){
+    const p=S.pending;if(p&&p.start&&R.me){const act=dist(p.start,R.me);
+      if(act>=3){(S.hist[p.club]=S.hist[p.club]||[]).push(act);S.hist[p.club]=S.hist[p.club].slice(-15);
+        S.log.push({t:Date.now(),club:p.club,planned:p.planned,actual:act});S.log=S.log.slice(-200);}}
+    S.pending=null;
+  }
+  else if(a==='addClub'){S.clubs.push({id:'c'+(S.nid++),name:'New club',carry:100,roll:5,on:true});}
+  else if(a==='delClub'){S.clubs=S.clubs.filter(x=>x.id!==b.dataset.id);}
+  else if(a==='resetBag'){S.clubs=defaultClubs();S.hist={};}
+  else if(a==='calib'){const cl=S.clubs.find(x=>x.id===b.dataset.id),hs=S.hist[b.dataset.id];
+    if(cl&&hs&&hs.length){const avg=hs.reduce((x,y)=>x+y,0)/hs.length,f=avg/(cl.carry+cl.roll);cl.carry*=f;cl.roll*=f;S.hist[b.dataset.id]=[];}}
+  else if(a==='clearLog'){S.log=[];S.hist={};}
+  else if(a==='weather'){fetchWeather(b);return;}
+  save();render();refreshLines();
+});
+sheet.addEventListener('change',e=>{
+  const f=e.target.dataset.f;if(!f)return;const c=S.cond,id=e.target.dataset.id,val=e.target.value;
+  const cl=id&&S.clubs.find(x=>x.id===id);
+  if(f==='wind')c.windKmh=Math.max(0,wFrom(Number(val)||0));
+  else if(f==='temp')c.temp=Number(val)||0;
+  else if(f==='lie')c.lie=Number(val);
+  else if(f==='cname'&&cl)cl.name=val;
+  else if(f==='ccarry'&&cl)cl.carry=Math.max(0,toM(Number(val)||0));
+  else if(f==='croll'&&cl)cl.roll=Math.max(0,toM(Number(val)||0));
+  else if(f==='con'&&cl)cl.on=e.target.checked;
+  save();if(f==='wind'||f==='temp'||f==='lie'){render();}
+  updateOut();
+});
+
+async function fetchWeather(btn){
+  const pos=R.me||map.getCenter();const old=btn.textContent;btn.textContent='Loading…';
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+pos.lat.toFixed(4)+'&longitude='+pos.lng.toFixed(4)+'&current=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation&wind_speed_unit=kmh');
+    const j=(await r.json()).current;
+    S.cond.temp=Math.round(j.temperature_2m);S.cond.windKmh=j.wind_speed_10m;S.cond.windFrom=j.wind_direction_10m;
+    S.cond.rain=j.precipitation>=1?2:(j.precipitation>0?1:0);
+    save();render();
+  }catch(err){btn.textContent='No connection – enter manually';setTimeout(()=>{btn.textContent=old;},2500);}
+}
+
+/* ---------- boot ---------- */
+render();startGPS();
+try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
+window.addEventListener('resize',()=>map.invalidateSize());
+window.__caddy={S,R,calc,recommend,setMe,placeTarget,placePin};
+})();
+</script>
+</body>
+</html>
