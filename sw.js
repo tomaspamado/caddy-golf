@@ -1,5 +1,5 @@
 // Caddy service worker. Bump VER when shipping; index.html is network-first so it is never stale online.
-const VER='caddy-v1';
+const VER='caddy-v2';
 const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg',
  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js','https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'];
 self.addEventListener('install',e=>{
@@ -13,7 +13,7 @@ self.addEventListener('fetch',e=>{
   if(r.method!=='GET')return;
   const u=new URL(r.url);
   const own=u.origin===self.location.origin;
-  if(own||u.hostname==='unpkg.com'){
+  if(own||u.hostname==='unpkg.com'||u.hostname==='cdn.jsdelivr.net'||u.hostname==='storage.googleapis.com'){
     const shell=r.mode==='navigate'||(own&&/(\/|index\.html|sw\.js)$/.test(u.pathname));
     if(shell){ // network first, cache fallback
       e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(VER).then(c=>c.put(r,cp));}return res;})
