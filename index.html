@@ -21,10 +21,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* top bar */
 #top{position:fixed;z-index:1000;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
 #top>*{pointer-events:auto}
-.pill{background:#fff;border-radius:999px;padding:0 14px;min-height:44px;font-size:14px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.28);display:flex;align-items:center;gap:7px;border:0}
+.pill{background:#fff;border-radius:999px;padding:0 14px;min-height:48px;font-size:14px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.28);display:flex;align-items:center;gap:7px;border:0}
 .dot{width:9px;height:9px;border-radius:50%;background:#aaa;display:inline-block}
 .dot.ok{background:var(--acc)}.dot.wait{background:#f59e0b}.dot.bad{background:var(--bad)}
-.fab{width:46px;height:46px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.28);font-size:20px;display:grid;place-items:center}
+.fab{width:48px;height:48px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.28);font-size:20px;display:grid;place-items:center}
 #locate{position:fixed;z-index:1000;right:10px;bottom:calc(var(--sh) + 12px)}
 
 /* bottom sheet */
@@ -41,7 +41,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .why{color:var(--mut);font-size:15px;margin:8px 0 2px}
 .chiprow{display:flex;gap:10px;margin:10px 0 12px;overflow-x:auto;padding-bottom:2px}
 .cond{flex:none;background:var(--soft);border:0;border-radius:999px;padding:0 16px;min-height:48px;font-weight:700;font-size:15px}
-.cta{width:100%;border:0;background:var(--acc);color:#fff;font-weight:800;font-size:18px;padding:16px;border-radius:16px}
+.cta{width:100%;border:0;background:#15803d;color:#fff;font-weight:800;font-size:18px;padding:16px;border-radius:16px}
 .cta:active{background:var(--accd)}
 .link{background:none;border:0;color:var(--mut);font-weight:700;font-size:15px;padding:0 10px;min-height:48px}
 .center{text-align:center}
@@ -52,7 +52,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .det h4{margin:14px 0 8px;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--mut)}
 .seg{display:flex;gap:10px;flex-wrap:wrap}
-.seg button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:0 16px;min-height:48px;font-weight:700;font-size:15px}
+.seg button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:0 16px;min-width:48px;min-height:48px;font-weight:700;font-size:15px}
 .alt{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
 .alt b{font-weight:700}
 .stepper{display:flex;align-items:center;gap:14px}
@@ -68,7 +68,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .x{width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);font-size:18px}
 .obody{flex:1;overflow-y:auto;padding:4px 16px calc(env(safe-area-inset-bottom) + 20px)}
 .tabs{display:flex;gap:6px;padding:4px 16px 10px}
-.tabs button{flex:1;border:0;background:var(--soft);border-radius:12px;padding:10px;font-weight:700;font-size:15px;color:var(--mut)}
+.tabs button{flex:1;border:0;background:var(--soft);border-radius:12px;padding:0 4px;min-height:48px;font-weight:700;font-size:15px;color:var(--mut)}
 .tabs button.on{background:var(--ink);color:#fff}
 #modal{position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}
 #modal .card{background:#fff;width:100%;border-radius:22px 22px 0 0;max-height:92dvh;overflow-y:auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 18px)}
@@ -76,7 +76,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .card h3{margin:0}
 input[type=text],input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:16px;background:#fff;color:var(--ink);min-width:0}
 input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
-.brow{display:grid;grid-template-columns:minmax(90px,1.6fr) 1fr 1fr 30px 34px;gap:7px;align-items:center;margin-bottom:8px}
+.brow{display:grid;grid-template-columns:minmax(80px,1.5fr) 1fr 1fr 28px 44px;gap:7px;align-items:center;margin-bottom:8px}
 .brow.h{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase}
 .hint{background:var(--soft);border-radius:14px;padding:12px;font-size:14px;color:var(--mut);margin:10px 0}
 .shot{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line)}
@@ -100,7 +100,7 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 .cond.pickon{background:var(--ink);color:#fff}
 .sc.lite{grid-template-columns:44px 60px 1fr}
 .stepper button.scorebtn{width:auto;min-width:96px;border:0;background:none;font-size:42px;font-weight:800;border-radius:12px}
-.stepper button.scorebtn.ghost{color:#9aa79f}
+.stepper button.scorebtn.ghost{color:#6b7a71}
 .x{width:48px!important;height:48px!important}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{background:var(--soft);border-radius:14px;padding:10px}
@@ -409,7 +409,7 @@ function sheetHTML(){
   h+='<div class="why">'+(bits.length?bits.join(' · ')+' '+unit:'No adjustments. Conditions are neutral.')+'</div>';
   if(club){
     const dC=expDist(r,club),diff=dC-D;
-    h+='<div class="why">'+(Math.abs(diff)<3?'Lands right on target.':'Lands about <b>'+d1(Math.abs(diff))+' '+unit+(diff<0?' short</b> of':' past</b>')+' the target.')+' The green oval is where it should finish.</div>';
+    h+='<div class="why">'+(Math.abs(diff)<3?'Lands right on target.':'Lands about <b>'+d1(Math.abs(diff))+' '+unit+(diff<0?' short</b> of':' past</b>')+' the target.')+'</div>';
     if(!r.best&&!mine)h+='<div class="why" style="color:var(--bad);font-weight:700">Beyond your bag. Lay up and leave ~'+d1(Math.max(0,r.leave))+' '+unit+'.</div>'+(R.lay?'':'<button class="sec" style="width:100%;margin:8px 0" data-act="lay">Lay up: choose my line</button>');
   }
   if(R.lay&&(R.target||R.pin))h+='<div class="why">Leaves <b>'+d1(dist(R.lay,R.target||R.pin))+' '+unit+'</b> to the '+(R.pin?'pin':'target')+'. Tap the map or drag the amber circle to choose your line.</div>';
@@ -445,11 +445,12 @@ function dialSVG(){
   const pt=(a,rr)=>[100+rr*Math.sin(a*rad),100-rr*Math.cos(a*rad)];
   const [x1,y1]=pt(F,82),[x2,y2]=pt(F,34);
   const ah=(a,rr,s)=>{const [px,py]=pt(a,rr);const l=pt(a-150,s),r=pt(a+150,s);return px+','+py+' '+(px+(l[0]-100))+','+(py+(l[1]-100))+' '+(px+(r[0]-100))+','+(py+(r[1]-100));};
+  const ah2=(a,rr,s)=>{const [px,py]=pt(a,rr),l=pt(a+30,s),r=pt(a-30,s);return px+','+py+' '+(px+l[0]-100)+','+(py+l[1]-100)+' '+(px+r[0]-100)+','+(py+r[1]-100);};
   let s='<svg class="dial" id="dial" width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86" fill="#f2f6f3" stroke="#d3dbd6" stroke-width="2"/>';
   [['N',0],['E',90],['S',180],['W',270]].forEach(d=>{const [tx,ty]=pt(d[1],72);s+='<text x="'+tx+'" y="'+(ty+4)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6b61">'+d[0]+'</text>';});
   const aim=R.target||R.pin;
   if(R.me&&aim){const b=bearing(R.me,aim),[bx,by]=pt(b,86);s+='<line x1="100" y1="100" x2="'+bx+'" y2="'+by+'" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 9"/><circle cx="'+bx+'" cy="'+by+'" r="6" fill="#16a34a"/>';}
-  if(c.windKmh>=1){s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/><polygon points="'+ah(F+180,32,14)+'" fill="#2563eb"/>';}
+  if(c.windKmh>=1){s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/><polygon points="'+ah2(F,34,14)+'" fill="#2563eb"/>';}
   return s+'<circle cx="100" cy="100" r="5" fill="#0f1f16"/></svg>';
 }
 function openCond(){
@@ -529,7 +530,7 @@ function updatePill(){
   const rd=S.round,t=roundTotals(rd);p.hidden=false;p.textContent='⛳ Hole '+(rd.cur+1)+(t.n?' · '+fmtTo(t.to):'');
 }
 function stp(label,key,val){return '<div class="field center"><div class="lbl">'+label+'</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="'+key+'" data-v="-1">−</button><div class="v">'+val+'</div><button data-act="hstep" data-k="'+key+'" data-v="1">+</button></div></div>';}
-function stpScore(h){const has=h.score!=null;return '<div class="field center"><div class="lbl">Strokes</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="score" data-v="-1">−</button><button class="scorebtn'+(has?'':' ghost')+'" data-act="hpar0">'+(has?h.score:h.par)+'</button><button data-act="hstep" data-k="score" data-v="1">+</button></div>'+(has?'':'<div class="sub">Tap the number for par, or use + and −</div>')+'</div>';}
+function stpScore(h){const has=h.score!=null;return '<div class="field center"><div class="lbl">Strokes</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="score" data-v="-1">−</button><button class="scorebtn'+(has?'':' ghost')+'" data-act="hpar0">'+(has?h.score:h.par)+'</button><button data-act="hstep" data-k="score" data-v="1">+</button></div>'+(has?'':'<div class="sub">Next saves par, or use + and −</div>')+'</div>';}
 function openHole(i){
   if(!S.round)return;if(i!=null)S.round.cur=Number(i);
   const rd=S.round,h=rd.holes[rd.cur],t=roundTotals(rd),last=rd.cur===rd.holes.length-1;
@@ -540,7 +541,7 @@ function openHole(i){
     if(h.par>3)html+='<div class="field"><div class="lbl" style="margin-bottom:6px">Fairway from the tee</div><div class="seg">'+[['hit','✓ Hit'],['left','← Left'],['right','Right →']].map(f=>'<button class="'+(h.fw===f[0]?'on':'')+'" data-act="hfw" data-v="'+f[0]+'">'+f[1]+'</button>').join('')+'</div></div>';
     if(h.score!=null&&h.putts!=null)html+='<div class="sub center" style="margin-bottom:8px">Green in regulation: <b>'+(isGIR(h)?'yes':'no')+'</b></div>';
   }
-  html+='<button class="cta" data-act="hnav" data-v="1">'+(last?'Done':'Next hole ›')+'</button><div class="center"><button class="link" data-act="mclose">Close</button></div>';
+  html+='<button class="cta" data-act="hnav" data-v="1" data-save="1">'+(last?'Done':'Next hole ›')+'</button><div class="center"><button class="link" data-act="mclose">Close</button></div>';
   $('#mcard').innerHTML=html;$('#modal').hidden=false;
 }
 function viewRound(id){
@@ -611,7 +612,7 @@ function act(a,b){
     case 'mclose':$('#modal').hidden=true;refresh();return;
     case 'bag':openPanel('bag');return;
     case 'mepick':R.mePick=true;setGps('wait','Tap map: where you stand');return;
-    case 'more':R.expanded=!R.expanded;break;
+    case 'more':R.expanded=!R.expanded;if(R.expanded)setTimeout(()=>{const d=document.querySelector('#sheet .det');if(d)d.scrollIntoView({block:'nearest',behavior:'smooth'});},120);break;
     case 'mode':c.mode=v;break;
     case 'lie':c.lie=Number(v);break;
     case 'tilt':c.tilt=Number(v);break;
@@ -660,7 +661,7 @@ function act(a,b){
     case 'skipSetup':S.setup=true;save();$('#modal').hidden=true;refresh();return;
     case 'hpar':{const h=S.round.holes[S.round.cur];h.par=Number(v);if(h.par===3)h.fw=null;save();openHole();updatePill();return;}
     case 'hfw':{const h=S.round.holes[S.round.cur];h.fw=h.fw===v?null:v;save();openHole();return;}
-    case 'hnav':{const rd=S.round,n=rd.holes.length,nx=rd.cur+Number(v);if(nx>=n){$('#modal').hidden=true;save();refresh();return;}rd.cur=Math.max(0,nx);save();openHole();updatePill();return;}
+    case 'hnav':{const rd=S.round,n=rd.holes.length,nx=rd.cur+Number(v);if(b.dataset.save){const ch=rd.holes[rd.cur];if(ch.score==null)ch.score=ch.par;}if(nx>=n){$('#modal').hidden=true;save();refresh();return;}rd.cur=Math.max(0,nx);save();openHole();updatePill();return;}
     case 'finishRound':{if(!R.armFinish){R.armFinish=true;b.textContent='Tap again to finish';return;}R.armFinish=false;const rd=S.round;rd.end=Date.now();if(roundTotals(rd).n>0)S.rounds.unshift(rd);S.rounds=S.rounds.slice(0,100);S.round=null;save();openPanel('round');refresh();return;}
     case 'viewRound':viewRound(b.dataset.id);return;
     case 'delRound':{if(R.armDel!==b.dataset.id){R.armDel=b.dataset.id;b.textContent='Tap again to delete';return;}R.armDel=null;S.rounds=S.rounds.filter(x=>String(x.id)!==String(b.dataset.id));save();$('#modal').hidden=true;if(!$('#panel').hidden)openPanel('round');return;}
