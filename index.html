@@ -141,13 +141,108 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 "use strict";
 const $=s=>document.querySelector(s);
 const M2Y=1.09361,KMH_MPH=1.609,KEY='caddy.v1';
+/* ================= language (English / Português) ================= */
+const PT={
+'Caddy – Golf GPS & Club Advisor':'Caddy – GPS de Golfe e Conselheiro de Tacos',
+'Round':'Volta','Range':'Treino','Bag':'Saco','Settings':'Definições',
+'Centre on me':'Centrar em mim',
+'Finding GPS…':'A procurar GPS…','No GPS':'Sem GPS','GPS blocked':'GPS bloqueado','Manual position':'Posição manual','Tap map: where you stand':'Toca no mapa: onde estás',
+'No wind':'Sem vento','in your face':'de frente','behind you':'de trás','from right':'da direita','from left':'da esquerda','from':'de',
+'☀️ Dry':'☀️ Seco','🌦 Light rain':'🌦 Chuva fraca','🌧 Heavy rain':'🌧 Chuva forte',
+'smooth swing':'swing normal','three-quarter swing':'três quartos de swing','half swing':'meio swing','short, soft swing':'swing curto e suave',
+'leaves {0} {1}':'ficam {0} {1}',
+'Shot in progress':'Tacada em curso','Club':'Taco',
+'Play your shot, walk to the ball, then tap below to log the real distance.':'Joga a tacada, vai até à bola e toca em baixo para registar a distância real.',
+"📍 I'm at my ball":'📍 Estou na minha bola','Cancel':'Cancelar',
+'Finding your position…':'A procurar a tua posição…','Allow location access when asked. No signal?':'Permite o acesso à localização quando pedido. Sem sinal?','Set my position on the map':'Definir a minha posição no mapa',
+'Tap where you want to hit':'Toca onde queres bater','Tap the map to set a target. Tap a hazard to see how far to carry it.':'Toca no mapa para definir o alvo. Toca num obstáculo para ver a distância para o passar.',
+'Short game':'Jogo curto','Chip or pitch':'Chip ou pitch','Too close for a full swing. Pick your wedge by feel.':'Demasiado perto para um swing completo. Escolhe o wedge a sentir.',
+'✕ Back to target':'✕ Voltar ao alvo',
+'Your pick':'A tua escolha','Lay-up':'Lay-up','Shorter than any club':'Mais curto que qualquer taco','Out of range':'Fora de alcance',
+'Auto':'Auto','Carry a hazard':'Passar obstáculo','Approach':'Aproximação','Tee shot / lay-up':'Saída / lay-up',
+'No clubs':'Sem tacos','plays like {0} {1}':'equivale a {0} {1}',
+'Swing about <b>{0}%</b> of a full shot ({1})':'Swing a cerca de <b>{0}%</b> de uma tacada completa ({1})',
+'crosswind':'vento lateral','slope':'inclinação','stance':'posição','and':'e',
+'↔ Aim {0} {1} {2} for the {3}':'↔ Aponta {0} {1} {2} por causa de {3}','right|aim':'para a direita','left|aim':'para a esquerda',
+'Headwind ':'Vento de frente ','Tailwind ':'Vento de trás ','Cold ':'Frio ','Warm ':'Calor ','Rain ':'Chuva ',
+'Fairway / tee':'Fairway / tee','Light rough':'Rough baixo','Heavy rough':'Rough alto','Bunker':'Bunker',
+'Uphill ':'Subida ','Downhill ':'Descida ','Altitude ':'Altitude ','Uphill lie ':'Lie em subida ','Downhill lie ':'Lie em descida ',
+'Side slope ':'Inclinação lateral ','left |s':'à esquerda ','right |s':'à direita ',
+'No adjustments. Conditions are neutral.':'Sem ajustes. Condições neutras.',
+'Lands right on target.':'Cai mesmo no alvo.',
+'Lands about <b>{0} {1} short</b> of the target.':'Cai cerca de <b>{0} {1} antes</b> do alvo.',
+'Lands about <b>{0} {1} past</b> the target.':'Cai cerca de <b>{0} {1} depois</b> do alvo.',
+'Beyond your bag. Lay up and leave ~{0} {1}.':'Fora do teu saco. Faz lay-up e deixa ~{0} {1}.',
+'Lay up: choose my line':'Lay-up: escolher a linha',
+'Leaves <b>{0} {1}</b> {2}. Tap the map or drag the amber circle to choose your line.':'Ficam <b>{0} {1}</b> {2}. Toca no mapa ou arrasta o círculo âmbar para escolher a linha.',
+'to the pin':'até à bandeira','to the target':'até ao alvo',
+'Hit {0}':'Bater com {0}','Lay up':'Lay-up','Hide details ▴':'Esconder detalhes ▴','Details ▾':'Detalhes ▾',
+'recommended':'recomendado','±{0} wide':'±{0} largura','Pick a club':'Escolhe um taco',
+'Reach vs plays-like distance ({0} {1}). The map shows where each one could land.':'Alcance vs distância equivalente ({0} {1}). O mapa mostra onde cada um poderia cair.',
+'Slope to target':'Declive até ao alvo',
+'From map data (rough, a few metres off). Tap − or + to correct it.':'Dados do mapa (aproximados, com erro de alguns metros). Toca em − ou + para corrigir.',
+'Uphill is positive. Downhill is negative.':'Subida é positivo. Descida é negativo.',
+'Where you stand':'Onde estás','Flat lie':'Lie plano','Uphill lie':'Lie em subida','Downhill lie':'Lie em descida',
+'Ball level':'Bola ao nível','Ball above feet':'Bola acima dos pés','Ball below feet':'Bola abaixo dos pés',
+'Uphill lie: higher, shorter, goes left. Downhill lie: lower, farther, goes right. Above your feet goes left, below goes right (flipped if you are left-handed).':'Lie em subida: mais alta, mais curta, vai para a esquerda. Lie em descida: mais baixa, mais longa, vai para a direita. Bola acima dos pés vai para a esquerda, abaixo vai para a direita (ao contrário se fores esquerdino).',
+'Which way would the ball roll after landing?':'Para onde rolaria a bola depois de cair?',
+'← a lot':'← muito','← a bit':'← um pouco','Not at all':'Nada','a bit →':'um pouco →','a lot →':'muito →',
+'Pin':'Bandeira','Tap the map to place the pin…':'Toca no mapa para colocar a bandeira…','Move pin':'Mover bandeira','Place pin':'Colocar bandeira','Remove pin':'Remover bandeira','Clear target':'Limpar alvo',
+'Pin is {0} {1} past your target.':'A bandeira está {0} {1} depois do alvo.',
+'Conditions':'Condições','Live weather for your location':'Meteorologia em direto para a tua localização','Entered manually':'Introduzido manualmente',
+'Not loaded yet. Tap to load, or enter it yourself.':'Ainda não carregado. Toca para carregar ou introduz tu.','↻ Live weather':'↻ Meteo em direto',
+'Wind direction: tap the dial where the wind comes from':'Direção do vento: toca no mostrador de onde vem o vento',
+'Wind from {0}':'Vento de {0}','Your shot':'A tua tacada','Wind speed':'Velocidade do vento','Temperature':'Temperatura','Rain':'Chuva','Dry':'Seco','Light':'Fraca','Heavy':'Forte','Done':'Feito',
+'No connection – enter manually':'Sem ligação – introduz manualmente',
+'E|par':'Par','Score':'Pancadas','Out':'Ida','In':'Volta','Total':'Total',
+'{0} more holes to play':'Faltam {0} buracos',
+'Your stats':'As tuas estatísticas','Rounds':'Voltas','Avg per 18':'Média por 18','Best per 18':'Melhor por 18','Putts/hole':'Putts/buraco',
+'Past rounds':'Voltas anteriores','{0} holes':'{0} buracos',
+'Start a round':'Começar uma volta','Course name':'Nome do campo','Start round':'Começar volta','No score yet':'Sem resultado',
+'Hole {0} of {1}':'Buraco {0} de {1}','Enter score for hole {0}':'Registar pancadas do buraco {0}','Finish round':'Terminar volta','Tap again to finish':'Toca de novo para terminar','My round':'A minha volta',
+'⛳ Hole {0}':'⛳ Buraco {0}','Hole {0}':'Buraco {0}','no score yet':'sem resultado','no score':'sem resultado',
+'Strokes':'Pancadas','Next saves par, or use + and −':'Seguinte guarda o par, ou usa + e −',
+'Fairway from the tee':'Fairway na saída','✓ Hit':'✓ Acertou','← Left':'← Esquerda','Right →':'Direita →',
+'Green in regulation: <b>{0}</b>':'Green em regulação: <b>{0}</b>','yes':'sim','no':'não',
+'Next hole ›':'Buraco seguinte ›','Close':'Fechar','Delete round':'Apagar volta','Tap again to delete':'Toca de novo para apagar',
+'Add a club in Bag first.':'Adiciona primeiro um taco no Saco.',
+'Hit a ball, then enter how far it carried (from your launch monitor or the yardage markers) and which way it missed.':'Bate uma bola e indica a distância do voo (do monitor de lançamento ou das marcas de distância) e para que lado falhou.',
+'Carry distance':'Distância de voo','Straight':'Reto','Log shot with {0}':'Registar tacada com {0}',
+'Shots':'Tacadas','Average':'Média','Range|stat':'Variação',
+'Misses: {0} left · {1} straight · {2} right. Bag has {3} at {4} {5}.':'Falhas: {0} à esquerda · {1} retas · {2} à direita. O saco tem {3} a {4} {5}.',
+'Set my {0} to {1} {2}':'Definir o meu {0} para {1} {2}','Log 3 shots to update your bag.':'Regista 3 tacadas para atualizar o saco.','Clear this session':'Limpar esta sessão',
+'<b>Quick set:</b> how far does your 7 iron carry? All clubs scale from it.':'<b>Ajuste rápido:</b> a que distância voa o teu ferro 7? Todos os tacos são ajustados a partir dele.',
+'7 iron carry ({0})':'Ferro 7, voo ({0})','Apply':'Aplicar','Flies {0}':'Voa {0}','Runs {0}':'Rola {0}','On':'✓',
+'Measured avg <b>{0}</b> ({1} shots) vs set {2}':'Média medida <b>{0}</b> ({1} tacadas) vs definido {2}','Calibrate':'Calibrar',
+'Learned miss: ±{0} wide, ±{1} deep':'Falha aprendida: ±{0} de largura, ±{1} de profundidade',
+'＋ Add club':'＋ Adicionar taco','Reset defaults':'Repor predefinições','New club':'Novo taco',
+"<b>Flies</b> = how far the ball flies. <b>Runs</b> = how far it rolls after landing. Untick a club you don't carry.":'<b>Voa</b> = distância que a bola voa. <b>Rola</b> = distância que rola depois de cair. Desmarca os tacos que não levas.',
+'Shot history':'Histórico de tacadas',
+"No shots yet. Tap <b>Hit [club]</b> on the main screen, play the shot, then tap <b>I'm at my ball</b>. Your real GPS distances and misses build up here. After 5 shots with a club, its landing zone is learned from you.":'Ainda sem tacadas. Toca em <b>Bater com [taco]</b> no ecrã principal, joga a tacada e depois toca em <b>Estou na minha bola</b>. As tuas distâncias reais por GPS e as falhas ficam aqui. Depois de 5 tacadas com um taco, a zona de aterragem é aprendida a partir de ti.',
+'· hole {0}':'· buraco {0}','(planned {0})':'(previsto {0})','Clear shot history':'Limpar histórico',
+'GPS is too weak to measure ({0} m). Try again in a few seconds.':'GPS demasiado fraco para medir ({0} m). Tenta de novo dentro de uns segundos.',
+'That is under 10 m from where you hit. Walk to your ball first.':'Estás a menos de 10 m de onde bateste. Vai primeiro até à bola.',
+'Language':'Idioma','Units':'Unidades','Metres':'Metros','Yards':'Jardas','I hit':'Sou','Right-handed':'Destro','Left-handed':'Esquerdino',
+'Scorecard':'Cartão de jogo','Score only':'Só pancadas',
+'<b>How the caddy thinks.</b> It adjusts the distance for wind (about 1% per mph into the wind, half that downwind), cold air (about 2% per 10°C), rain, rough or sand, and slope, then picks the club whose carry plus roll matches. The green oval is where about 80% of your shots with that club should finish; it starts as an estimate and learns from the shots you log. These are rules of thumb. Your logged shots make it more accurate.':'<b>Como o caddy pensa.</b> Ajusta a distância ao vento (cerca de 1% por mph de vento de frente, metade com vento de trás), ao ar frio (cerca de 2% por cada 10°C), à chuva, ao rough ou areia e ao declive, e depois escolhe o taco cujo voo mais rolamento corresponde. O oval verde é onde devem acabar cerca de 80% das tuas tacadas com esse taco; começa como estimativa e aprende com as tacadas que registas. São regras práticas. As tacadas registadas tornam-no mais preciso.',
+'Weather: Open-Meteo. Height above sea level and slope between you and the target: Copernicus DEM (90 m grid) via Open-Meteo, so slope can be a few metres off; you can always correct it. Map imagery: Esri.':'Meteorologia: Open-Meteo. Altitude e declive entre ti e o alvo: Copernicus DEM (grelha de 90 m) via Open-Meteo, por isso o declive pode ter erro de alguns metros; podes sempre corrigir. Imagens do mapa: Esri.',
+'Reset all my data':'Apagar todos os meus dados','Tap again to confirm':'Toca de novo para confirmar',
+'Welcome to Caddy':'Bem-vindo ao Caddy',
+'One question to start: how far do you hit your 7 iron? Every other club is set from it, and you can change them anytime in Bag.':'Uma pergunta para começar: a que distância bates o teu ferro 7? Todos os outros tacos são definidos a partir dele e podes alterá-los em qualquer altura no Saco.',
+'in yards':'em jardas','in metres':'em metros','Start':'Começar','Use the defaults for now':'Usar predefinições por agora',
+'SW':'SO','W':'O','NW':'NO'
+};
+const CN={'3 Wood':'Madeira 3','5 Wood':'Madeira 5','4 Hybrid':'Híbrido 4','5 Iron':'Ferro 5','6 Iron':'Ferro 6','7 Iron':'Ferro 7','8 Iron':'Ferro 8','9 Iron':'Ferro 9'};
+const tc=n=>(S.lang==='pt'&&CN[n])||n;
+const tr=(k,...a)=>{let s=(S.lang==='pt'&&PT[k])||String(k).split('|')[0];a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v);});return s;};
+const dirL=d=>tr(d);
 
 /* ================= state ================= */
 function defaultClubs(){
   const d=[['Driver',200,20],['3 Wood',180,15],['5 Wood',168,12],['4 Hybrid',160,10],['5 Iron',150,8],['6 Iron',140,7],['7 Iron',130,6],['8 Iron',120,5],['9 Iron',110,4],['Pitching Wedge',100,3],['Sand Wedge',72,2]];
   return d.map((c,i)=>({id:'c'+i,name:c[0],carry:c[1],roll:c[2],on:true}));
 }
-function defaults(){return{units:'m',clubs:defaultClubs(),setup:false,rlog:[],rsel:null,wxAuto:true,wxTime:0,round:null,rounds:[],disp:1,miss:{},nh:9,
+function defaults(){return{units:'m',lang:((navigator.language||'').toLowerCase().indexOf('pt')===0?'pt':'en'),clubs:defaultClubs(),setup:false,rlog:[],rsel:null,wxAuto:true,wxTime:0,round:null,rounds:[],disp:1,miss:{},nh:9,
   cond:{windKmh:0,windFrom:0,temp:18,rain:0,ground:1,lie:0,elev:0,tilt:0,stance:0,ballh:0,mode:'auto'},alt:0,lefty:false,wxOk:false,stats:false,hist:{},log:[],pending:null,nid:100};}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs){S=Object.assign(defaults(),j);S.cond=Object.assign(defaults().cond,j.cond||{});if(S.cond.mode==='approach'&&!j.v2)S.cond.mode='auto';S.v2=1;}}catch(e){}
@@ -247,7 +342,7 @@ function refreshLines(){
   ['l1','l2'].forEach(k=>{if(ln[k]){map.removeLayer(ln[k]);ln[k]=null;}});
   const fin=R.target||R.pin,aim=R.lay||fin,mid=(a,b)=>L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
   if(R.me&&aim){ln.l1=L.polyline([R.me,aim],{color:'#fff',weight:3,opacity:.95,interactive:false}).addTo(map);tagAt(mid(R.me,aim),d1(dist(R.me,aim))+' '+ul(),'tg1');}else rmKey('tg1');
-  if(R.lay&&fin){ln.l2=L.polyline([R.lay,fin],{color:'#ffd166',weight:3,dashArray:'7 7',interactive:false}).addTo(map);tagAt(mid(R.lay,fin),'leaves '+d1(dist(R.lay,fin))+' '+ul(),'tg2','y');}
+  if(R.lay&&fin){ln.l2=L.polyline([R.lay,fin],{color:'#ffd166',weight:3,dashArray:'7 7',interactive:false}).addTo(map);tagAt(mid(R.lay,fin),tr('leaves {0} {1}',d1(dist(R.lay,fin)),ul()),'tg2','y');}
   else if(R.target&&R.pin){ln.l2=L.polyline([R.target,R.pin],{color:'#ffd166',weight:3,dashArray:'7 7',interactive:false}).addTo(map);tagAt(mid(R.target,R.pin),d1(dist(R.target,R.pin))+' '+ul(),'tg2','y');}
   else rmKey('tg2');
 }
@@ -273,7 +368,7 @@ $('#locate').addEventListener('click',()=>{R.manual=false;startGPS(true);if(R.me
 
 /* ================= GPS ================= */
 let watchId=null;
-function setGps(state,text){$('#gps').innerHTML='<i class="dot '+state+'"></i><span>'+text+'</span>';}
+function setGps(state,text){R.g=[state,text];$('#gps').innerHTML='<i class="dot '+state+'"></i><span>'+tr(text)+'</span>';}
 function startGPS(restart){
   if(!navigator.geolocation){setGps('bad','No GPS');return;}
   if(watchId!=null){if(!restart)return;navigator.geolocation.clearWatch(watchId);}
@@ -332,10 +427,10 @@ function renderSheet(){
 }
 function wxChips(r){
   const c=S.cond;let wtxt;
-  if(c.windKmh<1)wtxt='No wind';
-  else if(r){const hd=Math.abs(r.head)>=Math.abs(r.cross);wtxt=wDisp(c.windKmh)+' '+wl()+' '+(hd?(r.head>=0?'in your face':'behind you'):(r.cross>0?'from right':'from left'));}
-  else wtxt=wDisp(c.windKmh)+' '+wl()+' from '+nearestDir(c.windFrom);
-  return '<div class="chiprow"><button class="cond" data-act="cond">💨 '+wtxt+'</button><button class="cond" data-act="cond">🌡 '+c.temp+'°C</button><button class="cond" data-act="cond">'+['☀️ Dry','🌦 Light rain','🌧 Heavy rain'][c.rain]+'</button></div>';
+  if(c.windKmh<1)wtxt=tr('No wind');
+  else if(r){const hd=Math.abs(r.head)>=Math.abs(r.cross);wtxt=wDisp(c.windKmh)+' '+wl()+' '+tr(hd?(r.head>=0?'in your face':'behind you'):(r.cross>0?'from right':'from left'));}
+  else wtxt=wDisp(c.windKmh)+' '+wl()+' '+tr('from')+' '+dirL(nearestDir(c.windFrom));
+  return '<div class="chiprow"><button class="cond" data-act="cond">💨 '+wtxt+'</button><button class="cond" data-act="cond">🌡 '+c.temp+'°C</button><button class="cond" data-act="cond">'+tr(['☀️ Dry','🌦 Light rain','🌧 Heavy rain'][c.rain])+'</button></div>';
 }
 function sd(a){if(a.length<2)return 0;const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1));}
 function spread(club){
@@ -349,7 +444,7 @@ function spread(club){
   return{lat:prior.lat,dep:prior.dep,learned:false,n:0};
 }
 function expDist(r,club){const reach=(r.partial&&r.best&&club.id===r.best.id)?r.plays:club.reach;return Math.max(0,(reach-S.cond.elev)/(1+r.pct));}
-function swingWord(p){return p>=85?'smooth swing':(p>=70?'three-quarter swing':(p>=50?'half swing':'short, soft swing'));}
+function swingWord(p){return tr(p>=85?'smooth swing':(p>=70?'three-quarter swing':(p>=50?'half swing':'short, soft swing')));}
 function lateral(r,club){const dC=expDist(r,club),c=S.cond;const wind=-r.cross*dC*0.004,slope=(c.tilt||0)*0.25*club.roll*r.rollMult;const st=((c.stance===-1?1:c.stance===1?-1:0)+(c.ballh===-1?1:c.ballh===1?-1:0))*0.03*dC*(S.lefty?-1:1);return{wind:wind,slope:slope,stance:st,total:wind+slope+st};}
 function activeCtx(){
   const aim=R.lay||R.target||R.pin;if(!R.me||!aim)return null;
@@ -374,48 +469,48 @@ function drawZone(){
 function sheetHTML(){
   if(S.pending){
     const cl=S.clubs.find(x=>x.id===S.pending.club);
-    return '<div class="center"><div class="lbl">Shot in progress</div><div class="big-msg">'+esc(cl?cl.name:'Club')+'</div><div class="sub">Play your shot, walk to the ball, then tap below to log the real distance.</div></div>'+
-    (R.note?'<div class="aim" style="margin-top:10px">'+esc(R.note)+'</div>':'')+'<button class="cta" style="margin-top:14px" data-act="mark">📍 I\'m at my ball</button><div class="center"><button class="link" data-act="cancelHit">Cancel</button></div>';
+    return '<div class="center"><div class="lbl">'+tr('Shot in progress')+'</div><div class="big-msg">'+esc(cl?tc(cl.name):tr('Club'))+'</div><div class="sub">'+tr('Play your shot, walk to the ball, then tap below to log the real distance.')+'</div></div>'+
+    (R.note?'<div class="aim" style="margin-top:10px">'+esc(R.note)+'</div>':'')+'<button class="cta" style="margin-top:14px" data-act="mark">'+tr("📍 I'm at my ball")+'</button><div class="center"><button class="link" data-act="cancelHit">'+tr('Cancel')+'</button></div>';
   }
   if(!R.me){
-    return '<div class="center"><div class="big-msg">Finding your position…</div><div class="sub">Allow location access when asked. No signal?</div></div>'+
-    '<button class="cta" style="margin-top:12px;background:var(--ink)" data-act="mepick">Set my position on the map</button>';
+    return '<div class="center"><div class="big-msg">'+tr('Finding your position…')+'</div><div class="sub">'+tr('Allow location access when asked. No signal?')+'</div></div>'+
+    '<button class="cta" style="margin-top:12px;background:var(--ink)" data-act="mepick">'+tr('Set my position on the map')+'</button>';
   }
   const cx=activeCtx();
   if(!cx){
-    let h='<div class="center"><div class="big-msg">Tap where you want to hit</div><div class="sub">Tap the map to set a target. Tap a hazard to see how far to carry it.</div></div>'+wxChips(null);
+    let h='<div class="center"><div class="big-msg">'+tr('Tap where you want to hit')+'</div><div class="sub">'+tr('Tap the map to set a target. Tap a hazard to see how far to carry it.')+'</div></div>'+wxChips(null);
     return h;
   }
   const {D,r,club}=cx,unit=ul();
-  if(r.short)return '<div class="hero"><div><div class="lbl">Short game</div><div class="club">Chip or pitch</div></div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div></div></div><div class="why">Too close for a full swing. Pick your wedge by feel.</div>'+wxChips(r)+(R.lay?'<div class="center"><button class="link" data-act="unlay">✕ Back to target</button></div>':'');
+  if(r.short)return '<div class="hero"><div><div class="lbl">'+tr('Short game')+'</div><div class="club">'+tr('Chip or pitch')+'</div></div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div></div></div><div class="why">'+tr('Too close for a full swing. Pick your wedge by feel.')+'</div>'+wxChips(r)+(R.lay?'<div class="center"><button class="link" data-act="unlay">'+tr('✕ Back to target')+'</button></div>':'');
   const mine=!!(R.sel&&club&&r.best&&club.id!==r.best.id);
   let h='<div class="hero"><div>';
   if(club){
-    h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+(mine?'Your pick':(R.lay?'Lay-up':(r.partial?'Shorter than any club':(r.best?MODES[r.mode].n:'Out of range'))))+'</div><button class="clubbtn" data-act="picker">'+esc(club.name)+'<span> ▾</span></button>';
-  }else h+='<div class="club">No clubs</div>';
-  h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">plays like '+d1(r.plays)+' '+unit+'</div></div></div>';
-  if(r.partial&&club&&r.best&&club.id===r.best.id){const pc=Math.round(r.swing*100);h+='<div class="aim">Swing about <b>'+pc+'%</b> of a full shot ('+swingWord(pc)+')</div>';}
+    h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+tr(mine?'Your pick':(R.lay?'Lay-up':(r.partial?'Shorter than any club':(r.best?MODES[r.mode].n:'Out of range'))))+'</div><button class="clubbtn" data-act="picker">'+esc(tc(club.name))+'<span> ▾</span></button>';
+  }else h+='<div class="club">'+tr('No clubs')+'</div>';
+  h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">'+tr('plays like {0} {1}',d1(r.plays),unit)+'</div></div></div>';
+  if(r.partial&&club&&r.best&&club.id===r.best.id){const pc=Math.round(r.swing*100);h+='<div class="aim">'+tr('Swing about <b>{0}%</b> of a full shot ({1})',pc,swingWord(pc))+'</div>';}
   const lt=club?lateral(r,club):null;
-  if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push('crosswind');if(Math.abs(lt.slope)>=1)why.push('slope');if(Math.abs(lt.stance)>=1)why.push('stance');const wt=why.length>1?why.slice(0,-1).join(', ')+' and '+why[why.length-1]:why[0];h+='<div class="aim">↔ Aim '+d1(Math.abs(lt.total))+' '+unit+' '+(lt.total<0?'right':'left')+' for the '+wt+'</div>';}
+  if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push(tr('crosswind'));if(Math.abs(lt.slope)>=1)why.push(tr('slope'));if(Math.abs(lt.stance)>=1)why.push(tr('stance'));const wt=why.length>1?why.slice(0,-1).join(', ')+' '+tr('and')+' '+why[why.length-1]:why[0];h+='<div class="aim">'+tr('↔ Aim {0} {1} {2} for the {3}',d1(Math.abs(lt.total)),unit,tr(lt.total<0?'right|aim':'left|aim'),wt)+'</div>';}
   const p=r.parts,bits=[],sg=v=>(v>0?'+':'')+d1(v);
-  if(Math.abs(p.wind)>=1)bits.push((r.head>=0?'Headwind ':'Tailwind ')+sg(p.wind));
-  if(Math.abs(p.temp)>=1)bits.push((p.temp>0?'Cold ':'Warm ')+sg(p.temp));
-  if(p.rain>=1)bits.push('Rain '+sg(p.rain));
-  if(p.lie>=1)bits.push(LIES[S.cond.lie].n+' '+sg(p.lie));
-  if(Math.abs(p.elev)>=1)bits.push((p.elev>0?'Uphill ':'Downhill ')+sg(p.elev));
-  if(Math.abs(p.alt)>=1)bits.push('Altitude '+sg(p.alt));
-  if(Math.abs(p.stance)>=1)bits.push((S.cond.stance===1?'Uphill lie ':'Downhill lie ')+sg(p.stance));
-  if(lt&&Math.abs(lt.slope)>=1)bits.push('Side slope '+(lt.slope<0?'left ':'right ')+d1(Math.abs(lt.slope)));
-  h+='<div class="why">'+(bits.length?bits.join(' · ')+' '+unit:'No adjustments. Conditions are neutral.')+'</div>';
+  if(Math.abs(p.wind)>=1)bits.push(tr(r.head>=0?'Headwind ':'Tailwind ')+sg(p.wind));
+  if(Math.abs(p.temp)>=1)bits.push(tr(p.temp>0?'Cold ':'Warm ')+sg(p.temp));
+  if(p.rain>=1)bits.push(tr('Rain ')+sg(p.rain));
+  if(p.lie>=1)bits.push(tr(LIES[S.cond.lie].n)+' '+sg(p.lie));
+  if(Math.abs(p.elev)>=1)bits.push(tr(p.elev>0?'Uphill ':'Downhill ')+sg(p.elev));
+  if(Math.abs(p.alt)>=1)bits.push(tr('Altitude ')+sg(p.alt));
+  if(Math.abs(p.stance)>=1)bits.push(tr(S.cond.stance===1?'Uphill lie ':'Downhill lie ')+sg(p.stance));
+  if(lt&&Math.abs(lt.slope)>=1)bits.push(tr('Side slope ')+tr(lt.slope<0?'left |s':'right |s')+d1(Math.abs(lt.slope)));
+  h+='<div class="why">'+(bits.length?bits.join(' · ')+' '+unit:tr('No adjustments. Conditions are neutral.'))+'</div>';
   if(club){
     const dC=expDist(r,club),diff=dC-D;
-    h+='<div class="why">'+(Math.abs(diff)<3?'Lands right on target.':'Lands about <b>'+d1(Math.abs(diff))+' '+unit+(diff<0?' short</b> of':' past</b>')+' the target.')+'</div>';
-    if(!r.best&&!mine)h+='<div class="why" style="color:var(--bad);font-weight:700">Beyond your bag. Lay up and leave ~'+d1(Math.max(0,r.leave))+' '+unit+'.</div>'+(R.lay?'':'<button class="sec" style="width:100%;margin:8px 0" data-act="lay">Lay up: choose my line</button>');
+    h+='<div class="why">'+(Math.abs(diff)<3?tr('Lands right on target.'):tr(diff<0?'Lands about <b>{0} {1} short</b> of the target.':'Lands about <b>{0} {1} past</b> the target.',d1(Math.abs(diff)),unit))+'</div>';
+    if(!r.best&&!mine)h+='<div class="why" style="color:var(--bad);font-weight:700">'+tr('Beyond your bag. Lay up and leave ~{0} {1}.',d1(Math.max(0,r.leave)),unit)+'</div>'+(R.lay?'':'<button class="sec" style="width:100%;margin:8px 0" data-act="lay">'+tr('Lay up: choose my line')+'</button>');
   }
-  if(R.lay&&(R.target||R.pin))h+='<div class="why">Leaves <b>'+d1(dist(R.lay,R.target||R.pin))+' '+unit+'</b> to the '+(R.pin?'pin':'target')+'. Tap the map or drag the amber circle to choose your line.</div>';
+  if(R.lay&&(R.target||R.pin))h+='<div class="why">'+tr('Leaves <b>{0} {1}</b> {2}. Tap the map or drag the amber circle to choose your line.',d1(dist(R.lay,R.target||R.pin)),unit,tr(R.pin?'to the pin':'to the target'))+'</div>';
   h+=wxChips(r);
-  if(club)h+='<button class="cta" data-act="hit" data-club="'+club.id+'" data-d="'+Math.round(D)+'" data-e="'+Math.round(expDist(r,club))+'" data-a="'+lateral(r,club).total.toFixed(1)+'">Hit '+esc(club.name)+'</button>';
-  h+='<div class="center">'+(R.lay?'<button class="link" data-act="unlay">✕ Back to target</button>':'<button class="link" data-act="lay">Lay up</button>')+'<button class="link" data-act="more">'+(R.expanded?'Hide details ▴':'Details ▾')+'</button></div>';
+  if(club)h+='<button class="cta" data-act="hit" data-club="'+club.id+'" data-d="'+Math.round(D)+'" data-e="'+Math.round(expDist(r,club))+'" data-a="'+lateral(r,club).total.toFixed(1)+'">'+tr('Hit {0}',esc(tc(club.name)))+'</button>';
+  h+='<div class="center">'+(R.lay?'<button class="link" data-act="unlay">'+tr('✕ Back to target')+'</button>':'<button class="link" data-act="lay">'+tr('Lay up')+'</button>')+'<button class="link" data-act="more">'+tr(R.expanded?'Hide details ▴':'Details ▾')+'</button></div>';
   if(R.expanded)h+=detailsHTML(r);
   return h;
 }
@@ -423,19 +518,19 @@ function openPicker(){
   const cx=activeCtx();if(!cx)return;const {r,club}=cx,unit=ul();
   const rows=r.list.slice().sort((a,b)=>b.reach-a.reach).map(c=>{
     const diff=c.reach-r.plays,sp=spread(c);
-    return '<button class="pick'+(club&&c.id===club.id?' on':'')+'" data-act="selclub" data-id="'+c.id+'"><span><b>'+esc(c.name)+'</b>'+(r.best&&c.id===r.best.id?' <em>recommended</em>':'')+'</span><span>'+d1(c.reach)+' '+unit+' <small>('+(diff>=0?'+':'')+d1(diff)+', ±'+d1(sp.lat)+' wide)</small></span></button>';
+    return '<button class="pick'+(club&&c.id===club.id?' on':'')+'" data-act="selclub" data-id="'+c.id+'"><span><b>'+esc(tc(c.name))+'</b>'+(r.best&&c.id===r.best.id?' <em>'+tr('recommended')+'</em>':'')+'</span><span>'+d1(c.reach)+' '+unit+' <small>('+(diff>=0?'+':'')+d1(diff)+', '+tr('±{0} wide',d1(sp.lat))+')</small></span></button>';
   }).join('');
-  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><h3>Pick a club</h3><button class="x" data-act="mclose">✕</button></div><div class="sub" style="margin:6px 0 10px">Reach vs plays-like distance ('+d1(r.plays)+' '+unit+'). The map shows where each one could land.</div>'+rows;
+  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><h3>'+tr('Pick a club')+'</h3><button class="x" data-act="mclose">✕</button></div><div class="sub" style="margin:6px 0 10px">'+tr('Reach vs plays-like distance ({0} {1}). The map shows where each one could land.',d1(r.plays),unit)+'</div>'+rows;
   $('#modal').hidden=false;
 }
 function detailsHTML(r){
   const c=S.cond,unit=ul();let h='<div class="det">';
-  h+='<h4>Lie</h4><div class="seg">'+LIES.map((l,i)=>'<button class="'+(c.lie===i?'on':'')+'" data-act="lie" data-v="'+i+'">'+l.n+'</button>').join('')+'</div>';
-  h+='<h4>Slope to target</h4><div class="stepper"><button data-act="elev" data-v="-1">−</button><div class="v">'+(c.elev>0?'+':'')+d1(c.elev)+'<small> '+unit+'</small></div><button data-act="elev" data-v="1">+</button></div><div class="sub" style="margin-top:6px">'+(R.elevSrc==='auto'?'From map data (rough, a few metres off). Tap − or + to correct it.':'Uphill is positive. Downhill is negative.')+'</div>';
-  h+='<h4>Where you stand</h4><div class="seg">'+[[0,'Flat lie'],[1,'Uphill lie'],[-1,'Downhill lie']].map(x=>'<button class="'+((c.stance||0)===x[0]?'on':'')+'" data-act="stance" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="seg" style="margin-top:10px">'+[[0,'Ball level'],[1,'Ball above feet'],[-1,'Ball below feet']].map(x=>'<button class="'+((c.ballh||0)===x[0]?'on':'')+'" data-act="ballh" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="sub" style="margin-top:6px">Uphill lie: higher, shorter, goes left. Downhill lie: lower, farther, goes right. Above your feet goes left, below goes right (flipped if you are left-handed).</div>';
-  h+='<h4>Which way would the ball roll after landing?</h4><div class="seg">'+[[-2,'← a lot'],[-1,'← a bit'],[0,'Not at all'],[1,'a bit →'],[2,'a lot →']].map(x=>'<button class="'+((c.tilt||0)===x[0]?'on':'')+'" data-act="tilt" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
-  h+='<h4>Pin</h4><div class="row">'+(R.placePin?'<span class="sub">Tap the map to place the pin…</span>':'<button class="sec" data-act="pinmode">⛳ '+(R.pin?'Move pin':'Place pin')+'</button>')+(R.pin?'<button class="sec" data-act="clearpin">Remove pin</button>':'')+(R.target?'<button class="sec" data-act="cleartarget">Clear target</button>':'')+'</div>';
-  if(R.target&&R.pin)h+='<div class="sub" style="margin-top:8px">Pin is '+d1(dist(R.target,R.pin))+' '+unit+' past your target.</div>';
+  h+='<h4>Lie</h4><div class="seg">'+LIES.map((l,i)=>'<button class="'+(c.lie===i?'on':'')+'" data-act="lie" data-v="'+i+'">'+tr(l.n)+'</button>').join('')+'</div>';
+  h+='<h4>'+tr('Slope to target')+'</h4><div class="stepper"><button data-act="elev" data-v="-1">−</button><div class="v">'+(c.elev>0?'+':'')+d1(c.elev)+'<small> '+unit+'</small></div><button data-act="elev" data-v="1">+</button></div><div class="sub" style="margin-top:6px">'+tr(R.elevSrc==='auto'?'From map data (rough, a few metres off). Tap − or + to correct it.':'Uphill is positive. Downhill is negative.')+'</div>';
+  h+='<h4>'+tr('Where you stand')+'</h4><div class="seg">'+[[0,'Flat lie'],[1,'Uphill lie'],[-1,'Downhill lie']].map(x=>'<button class="'+((c.stance||0)===x[0]?'on':'')+'" data-act="stance" data-v="'+x[0]+'">'+tr(x[1])+'</button>').join('')+'</div><div class="seg" style="margin-top:10px">'+[[0,'Ball level'],[1,'Ball above feet'],[-1,'Ball below feet']].map(x=>'<button class="'+((c.ballh||0)===x[0]?'on':'')+'" data-act="ballh" data-v="'+x[0]+'">'+tr(x[1])+'</button>').join('')+'</div><div class="sub" style="margin-top:6px">'+tr('Uphill lie: higher, shorter, goes left. Downhill lie: lower, farther, goes right. Above your feet goes left, below goes right (flipped if you are left-handed).')+'</div>';
+  h+='<h4>'+tr('Which way would the ball roll after landing?')+'</h4><div class="seg">'+[[-2,'← a lot'],[-1,'← a bit'],[0,'Not at all'],[1,'a bit →'],[2,'a lot →']].map(x=>'<button class="'+((c.tilt||0)===x[0]?'on':'')+'" data-act="tilt" data-v="'+x[0]+'">'+tr(x[1])+'</button>').join('')+'</div>';
+  h+='<h4>'+tr('Pin')+'</h4><div class="row">'+(R.placePin?'<span class="sub">'+tr('Tap the map to place the pin…')+'</span>':'<button class="sec" data-act="pinmode">⛳ '+tr(R.pin?'Move pin':'Place pin')+'</button>')+(R.pin?'<button class="sec" data-act="clearpin">'+tr('Remove pin')+'</button>':'')+(R.target?'<button class="sec" data-act="cleartarget">'+tr('Clear target')+'</button>':'')+'</div>';
+  if(R.target&&R.pin)h+='<div class="sub" style="margin-top:8px">'+tr('Pin is {0} {1} past your target.',d1(dist(R.target,R.pin)),unit)+'</div>';
   return h+'</div>';
 }
 
@@ -447,7 +542,7 @@ function dialSVG(){
   const ah=(a,rr,s)=>{const [px,py]=pt(a,rr);const l=pt(a-150,s),r=pt(a+150,s);return px+','+py+' '+(px+(l[0]-100))+','+(py+(l[1]-100))+' '+(px+(r[0]-100))+','+(py+(r[1]-100));};
   const ah2=(a,rr,s)=>{const [px,py]=pt(a,rr),l=pt(a+30,s),r=pt(a-30,s);return px+','+py+' '+(px+l[0]-100)+','+(py+l[1]-100)+' '+(px+r[0]-100)+','+(py+r[1]-100);};
   let s='<svg class="dial" id="dial" width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86" fill="#f2f6f3" stroke="#d3dbd6" stroke-width="2"/>';
-  [['N',0],['E',90],['S',180],['W',270]].forEach(d=>{const [tx,ty]=pt(d[1],72);s+='<text x="'+tx+'" y="'+(ty+4)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6b61">'+d[0]+'</text>';});
+  [['N',0],['E',90],['S',180],['W',270]].forEach(d=>{const [tx,ty]=pt(d[1],72);s+='<text x="'+tx+'" y="'+(ty+4)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6b61">'+dirL(d[0])+'</text>';});
   const aim=R.target||R.pin;
   if(R.me&&aim){const b=bearing(R.me,aim),[bx,by]=pt(b,86);s+='<line x1="100" y1="100" x2="'+bx+'" y2="'+by+'" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 9"/><circle cx="'+bx+'" cy="'+by+'" r="6" fill="#16a34a"/>';}
   if(c.windKmh>=1){s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/><polygon points="'+ah2(F,34,14)+'" fill="#2563eb"/>';}
@@ -456,14 +551,14 @@ function dialSVG(){
 function openCond(){
   const c=S.cond,m=$('#modal');m.hidden=false;
   const step=S.units==='y'?1:2;
-  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><h3>Conditions</h3><button class="x" data-act="mclose">✕</button></div>'+
-  '<div class="hint" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>'+(S.wxAuto&&S.wxOk?'Live weather for your location':(S.wxOk?'Entered manually':'Not loaded yet. Tap to load, or enter it yourself.'))+'</span><button class="sec" data-act="wx">↻ Live weather</button></div>'+
-  '<div class="lbl">Wind direction: tap the dial where the wind comes from</div>'+dialSVG()+
-  '<div class="legend"><i style="background:#2563eb"></i>Wind from '+nearestDir(c.windFrom)+' <i style="background:#16a34a;margin-left:12px"></i>Your shot</div>'+
-  '<div class="field center"><div class="lbl">Wind speed</div><div class="stepper" style="justify-content:center"><button data-act="ws" data-v="-'+step+'">−</button><div class="v">'+wDisp(c.windKmh)+'<small> '+wl()+'</small></div><button data-act="ws" data-v="'+step+'">+</button></div></div>'+
-  '<div class="field center"><div class="lbl">Temperature</div><div class="stepper" style="justify-content:center"><button data-act="tp" data-v="-1">−</button><div class="v">'+c.temp+'<small> °C</small></div><button data-act="tp" data-v="1">+</button></div></div>'+
-  '<div class="field"><div class="lbl" style="margin-bottom:6px">Rain</div><div class="seg">'+['Dry','Light','Heavy'].map((n,i)=>'<button class="'+(c.rain===i?'on':'')+'" data-act="rain" data-v="'+i+'">'+n+'</button>').join('')+'</div></div>'+
-  '<button class="cta" data-act="mclose">Done</button>';
+  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><h3>'+tr('Conditions')+'</h3><button class="x" data-act="mclose">✕</button></div>'+
+  '<div class="hint" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>'+tr(S.wxAuto&&S.wxOk?'Live weather for your location':(S.wxOk?'Entered manually':'Not loaded yet. Tap to load, or enter it yourself.'))+'</span><button class="sec" data-act="wx">'+tr('↻ Live weather')+'</button></div>'+
+  '<div class="lbl">'+tr('Wind direction: tap the dial where the wind comes from')+'</div>'+dialSVG()+
+  '<div class="legend"><i style="background:#2563eb"></i>'+tr('Wind from {0}',dirL(nearestDir(c.windFrom)))+' <i style="background:#16a34a;margin-left:12px"></i>'+tr('Your shot')+'</div>'+
+  '<div class="field center"><div class="lbl">'+tr('Wind speed')+'</div><div class="stepper" style="justify-content:center"><button data-act="ws" data-v="-'+step+'">−</button><div class="v">'+wDisp(c.windKmh)+'<small> '+wl()+'</small></div><button data-act="ws" data-v="'+step+'">+</button></div></div>'+
+  '<div class="field center"><div class="lbl">'+tr('Temperature')+'</div><div class="stepper" style="justify-content:center"><button data-act="tp" data-v="-1">−</button><div class="v">'+c.temp+'<small> °C</small></div><button data-act="tp" data-v="1">+</button></div></div>'+
+  '<div class="field"><div class="lbl" style="margin-bottom:6px">'+tr('Rain')+'</div><div class="seg">'+['Dry','Light','Heavy'].map((n,i)=>'<button class="'+(c.rain===i?'on':'')+'" data-act="rain" data-v="'+i+'">'+tr(n)+'</button>').join('')+'</div></div>'+
+  '<button class="cta" data-act="mclose">'+tr('Done')+'</button>';
 }
 function dialClick(e){
   const svg=e.currentTarget,rc=svg.getBoundingClientRect();
@@ -481,22 +576,22 @@ function openPanel(t){
 }
 
 /* ---------- rounds & scorecard ---------- */
-const fmtTo=v=>v===0?'E':(v>0?'+'+v:''+v);
+const fmtTo=v=>v===0?tr('E|par'):(v>0?'+'+v:''+v);
 function roundTotals(rd){let sc=0,par=0,pt=0,n=0;rd.holes.forEach(h=>{if(h.score!=null){sc+=h.score;par+=h.par;n++;}if(h.putts!=null)pt+=h.putts;});return{sc,par,n,pt,to:sc-par};}
 function isGIR(h){return h.score!=null&&h.putts!=null&&h.score-h.putts<=h.par-2;}
 function scoreCls(h){if(h.score==null)return '';const d=h.score-h.par;return d<=-2?'eag':d===-1?'bir':d===0?'':d===1?'bog':'dbl';}
 function cardHTML(rd,editable){
   const full=S.stats,cls='sc'+(full?'':' lite');
-  let h='<div class="'+cls+' hd"><div>#</div><div>Par</div><div>Score</div>'+(full?'<div>Putts</div><div>FW</div><div>GIR</div>':'')+'</div>';
+  let h='<div class="'+cls+' hd"><div>#</div><div>'+tr('Par')+'</div><div>'+tr('Score')+'</div>'+(full?'<div>Putts</div><div>FW</div><div>GIR</div>':'')+'</div>';
   const cells=x=>'<div>'+x.par+'</div><div><span class="scv '+scoreCls(x)+'">'+(x.score==null?'–':x.score)+'</span></div>'+(full?'<div>'+(x.putts==null?'–':x.putts)+'</div><div>'+(x.par<4?'':({hit:'✓',left:'←',right:'→'}[x.fw]||'–'))+'</div><div>'+(x.score==null||x.putts==null?'–':isGIR(x)?'✓':'✗')+'</div>':'');
-  const sub=(label,arr)=>{let p=0,s=0,pt=0,any=false;arr.forEach(x=>{p+=x.par;if(x.score!=null){s+=x.score;any=true;}if(x.putts!=null)pt+=x.putts;});return '<div class="'+cls+' tot"><div>'+label+'</div><div>'+p+'</div><div>'+(any?s:'–')+'</div>'+(full?'<div>'+(pt||'–')+'</div><div></div><div></div>':'')+'</div>';};
+  const sub=(label,arr)=>{let p=0,s=0,pt=0,any=false;arr.forEach(x=>{p+=x.par;if(x.score!=null){s+=x.score;any=true;}if(x.putts!=null)pt+=x.putts;});return '<div class="'+cls+' tot"><div>'+tr(label)+'</div><div>'+p+'</div><div>'+(any?s:'–')+'</div>'+(full?'<div>'+(pt||'–')+'</div><div></div><div></div>':'')+'</div>';};
   const rows=editable?rd.holes.filter((x,i)=>x.score!=null||i===rd.cur):rd.holes;
   rows.forEach(x=>{const i=x.n-1;
     h+='<div class="'+cls+(editable&&rd.cur===i?' cur':'')+'"'+(editable?' data-act="hole" data-i="'+i+'"':'')+'><div>'+x.n+'</div>'+cells(x)+'</div>';
     if(!editable&&rd.holes.length===18){if(x.n===9)h+=sub('Out',rd.holes.slice(0,9));if(x.n===18)h+=sub('In',rd.holes.slice(9));}
   });
   const left=rd.holes.length-rows.length;
-  if(editable&&left>0)h+='<div class="sub center" style="padding:10px">'+left+' more holes to play</div>';
+  if(editable&&left>0)h+='<div class="sub center" style="padding:10px">'+tr('{0} more holes to play',left)+'</div>';
   return h+sub('Total',rd.holes);
 }
 function statsHTML(){
@@ -504,98 +599,99 @@ function statsHTML(){
   let norm=[],fwH=0,fwN=0,g=0,gN=0,pt=0,ptN=0;
   rs.forEach(rd=>{const t=roundTotals(rd);norm.push(t.sc/t.n*18);rd.holes.forEach(x=>{if(x.par>3&&x.score!=null){fwN++;if(x.fw==='hit')fwH++;}if(x.score!=null&&x.putts!=null){gN++;if(isGIR(x))g++;}if(x.putts!=null){pt+=x.putts;ptN++;}});});
   const avg=Math.round(norm.reduce((a,b)=>a+b,0)/norm.length),best=Math.round(Math.min.apply(null,norm));
-  const cell=(l,v)=>'<div class="stat"><div class="lbl">'+l+'</div><div class="big">'+v+'</div></div>';
-  return '<h4 class="lbl" style="margin:18px 0 8px">Your stats</h4><div class="stats">'+cell('Rounds',rs.length)+cell('Avg per 18',avg)+cell('Best per 18',best)+(S.stats?cell('Fairways',fwN?Math.round(fwH/fwN*100)+'%':'–')+cell('Greens',gN?Math.round(g/gN*100)+'%':'–')+cell('Putts/hole',ptN?(pt/ptN).toFixed(1):'–'):'')+'</div>';
+  const cell=(l,v)=>'<div class="stat"><div class="lbl">'+tr(l)+'</div><div class="big">'+v+'</div></div>';
+  return '<h4 class="lbl" style="margin:18px 0 8px">'+tr('Your stats')+'</h4><div class="stats">'+cell('Rounds',rs.length)+cell('Avg per 18',avg)+cell('Best per 18',best)+(S.stats?cell('Fairways',fwN?Math.round(fwH/fwN*100)+'%':'–')+cell('Greens',gN?Math.round(g/gN*100)+'%':'–')+cell('Putts/hole',ptN?(pt/ptN).toFixed(1):'–'):'')+'</div>';
 }
 function historyHTML(){
   if(!S.rounds.length)return '';
-  return '<h4 class="lbl" style="margin:18px 0 8px">Past rounds</h4>'+S.rounds.map(rd=>{const t=roundTotals(rd),d=new Date(rd.date);
-    return '<button class="pick" data-act="viewRound" data-id="'+rd.id+'"><span><b>'+esc(rd.course)+'</b><br><small>'+d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+' · '+rd.holes.length+' holes</small></span><span><b style="font-size:20px">'+(t.n?t.sc:'–')+'</b> <small>'+(t.n?fmtTo(t.to):'')+'</small></span></button>';}).join('');
+  return '<h4 class="lbl" style="margin:18px 0 8px">'+tr('Past rounds')+'</h4>'+S.rounds.map(rd=>{const t=roundTotals(rd),d=new Date(rd.date);
+    return '<button class="pick" data-act="viewRound" data-id="'+rd.id+'"><span><b>'+esc(rd.course)+'</b><br><small>'+d.toLocaleDateString(S.lang==='pt'?'pt-PT':undefined,{day:'numeric',month:'short',year:'numeric'})+' · '+tr('{0} holes',rd.holes.length)+'</small></span><span><b style="font-size:20px">'+(t.n?t.sc:'–')+'</b> <small>'+(t.n?fmtTo(t.to):'')+'</small></span></button>';}).join('');
 }
 function roundHTML(){
   const rd=S.round;let h='';
   if(!rd){
-    h+='<div class="hint"><b style="color:var(--ink);font-size:17px">Start a round</b><div class="field"><input type="text" id="rname" placeholder="Course name" value="'+esc(R.cname||'')+'"></div><div class="seg">'+[18,9].map(n=>'<button class="'+(S.nh===n?'on':'')+'" data-act="nh" data-v="'+n+'">'+n+' holes</button>').join('')+'</div><button class="cta" style="margin-top:12px" data-act="startRound">Start round</button></div>';
+    h+='<div class="hint"><b style="color:var(--ink);font-size:17px">'+tr('Start a round')+'</b><div class="field"><input type="text" id="rname" placeholder="'+tr('Course name')+'" value="'+esc(R.cname||'')+'"></div><div class="seg">'+[18,9].map(n=>'<button class="'+(S.nh===n?'on':'')+'" data-act="nh" data-v="'+n+'">'+tr('{0} holes',n)+'</button>').join('')+'</div><button class="cta" style="margin-top:12px" data-act="startRound">'+tr('Start round')+'</button></div>';
   }else{
     const t=roundTotals(rd);
-    h+='<div class="hint" style="background:var(--ink);color:#fff"><div class="lbl" style="color:#9fb3a7">'+esc(rd.course)+'</div><div class="big" style="color:#fff;font-size:'+(t.n?34:22)+'px">'+(t.n?t.sc+' <small style="font-size:18px">'+fmtTo(t.to)+'</small>':'No score yet')+'</div><div style="margin-top:6px">Hole '+(rd.cur+1)+' of '+rd.holes.length+'</div></div>'+
-    '<button class="cta" data-act="hole" data-i="'+rd.cur+'">Enter score for hole '+(rd.cur+1)+'</button><div style="height:12px"></div>'+cardHTML(rd,true)+
-    '<div style="margin-top:14px"><button class="sec" data-act="finishRound">Finish round</button></div>';
+    h+='<div class="hint" style="background:var(--ink);color:#fff"><div class="lbl" style="color:#9fb3a7">'+esc(rd.course)+'</div><div class="big" style="color:#fff;font-size:'+(t.n?34:22)+'px">'+(t.n?t.sc+' <small style="font-size:18px">'+fmtTo(t.to)+'</small>':tr('No score yet'))+'</div><div style="margin-top:6px">'+tr('Hole {0} of {1}',rd.cur+1,rd.holes.length)+'</div></div>'+
+    '<button class="cta" data-act="hole" data-i="'+rd.cur+'">'+tr('Enter score for hole {0}',rd.cur+1)+'</button><div style="height:12px"></div>'+cardHTML(rd,true)+
+    '<div style="margin-top:14px"><button class="sec" data-act="finishRound">'+tr('Finish round')+'</button></div>';
   }
   return h+statsHTML()+historyHTML();
 }
 function updatePill(){
   const p=$('#holePill');
   if(!S.round){p.hidden=true;return;}
-  const rd=S.round,t=roundTotals(rd);p.hidden=false;p.textContent='⛳ Hole '+(rd.cur+1)+(t.n?' · '+fmtTo(t.to):'');
+  const rd=S.round,t=roundTotals(rd);p.hidden=false;p.textContent=tr('⛳ Hole {0}',rd.cur+1)+(t.n?' · '+fmtTo(t.to):'');
 }
-function stp(label,key,val){return '<div class="field center"><div class="lbl">'+label+'</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="'+key+'" data-v="-1">−</button><div class="v">'+val+'</div><button data-act="hstep" data-k="'+key+'" data-v="1">+</button></div></div>';}
-function stpScore(h){const has=h.score!=null;return '<div class="field center"><div class="lbl">Strokes</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="score" data-v="-1">−</button><button class="scorebtn'+(has?'':' ghost')+'" data-act="hpar0">'+(has?h.score:h.par)+'</button><button data-act="hstep" data-k="score" data-v="1">+</button></div>'+(has?'':'<div class="sub">Next saves par, or use + and −</div>')+'</div>';}
+function stp(label,key,val){return '<div class="field center"><div class="lbl">'+tr(label)+'</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="'+key+'" data-v="-1">−</button><div class="v">'+val+'</div><button data-act="hstep" data-k="'+key+'" data-v="1">+</button></div></div>';}
+function stpScore(h){const has=h.score!=null;return '<div class="field center"><div class="lbl">'+tr('Strokes')+'</div><div class="stepper" style="justify-content:center"><button data-act="hstep" data-k="score" data-v="-1">−</button><button class="scorebtn'+(has?'':' ghost')+'" data-act="hpar0">'+(has?h.score:h.par)+'</button><button data-act="hstep" data-k="score" data-v="1">+</button></div>'+(has?'':'<div class="sub">'+tr('Next saves par, or use + and −')+'</div>')+'</div>';}
 function openHole(i){
   if(!S.round)return;if(i!=null)S.round.cur=Number(i);
   const rd=S.round,h=rd.holes[rd.cur],t=roundTotals(rd),last=rd.cur===rd.holes.length-1;
-  let html='<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><button class="x" data-act="hnav" data-v="-1">‹</button><div class="center"><h3>Hole '+h.n+'</h3><div class="sub">'+esc(rd.course)+' · '+(t.n?t.sc+' ('+fmtTo(t.to)+')':'no score yet')+'</div></div><button class="x" data-act="hnav" data-v="1">›</button></div>'+
-  '<div class="field"><div class="lbl" style="margin-bottom:6px">Par</div><div class="seg">'+[3,4,5].map(p=>'<button class="'+(h.par===p?'on':'')+'" data-act="hpar" data-v="'+p+'">'+p+'</button>').join('')+'</div></div>'+stpScore(h);
+  let html='<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><button class="x" data-act="hnav" data-v="-1">‹</button><div class="center"><h3>'+tr('Hole {0}',h.n)+'</h3><div class="sub">'+esc(rd.course)+' · '+(t.n?t.sc+' ('+fmtTo(t.to)+')':tr('no score yet'))+'</div></div><button class="x" data-act="hnav" data-v="1">›</button></div>'+
+  '<div class="field"><div class="lbl" style="margin-bottom:6px">'+tr('Par')+'</div><div class="seg">'+[3,4,5].map(p=>'<button class="'+(h.par===p?'on':'')+'" data-act="hpar" data-v="'+p+'">'+p+'</button>').join('')+'</div></div>'+stpScore(h);
   if(S.stats){
     html+=stp('Putts','putts',h.putts==null?'–':h.putts);
-    if(h.par>3)html+='<div class="field"><div class="lbl" style="margin-bottom:6px">Fairway from the tee</div><div class="seg">'+[['hit','✓ Hit'],['left','← Left'],['right','Right →']].map(f=>'<button class="'+(h.fw===f[0]?'on':'')+'" data-act="hfw" data-v="'+f[0]+'">'+f[1]+'</button>').join('')+'</div></div>';
-    if(h.score!=null&&h.putts!=null)html+='<div class="sub center" style="margin-bottom:8px">Green in regulation: <b>'+(isGIR(h)?'yes':'no')+'</b></div>';
+    if(h.par>3)html+='<div class="field"><div class="lbl" style="margin-bottom:6px">'+tr('Fairway from the tee')+'</div><div class="seg">'+[['hit','✓ Hit'],['left','← Left'],['right','Right →']].map(f=>'<button class="'+(h.fw===f[0]?'on':'')+'" data-act="hfw" data-v="'+f[0]+'">'+tr(f[1])+'</button>').join('')+'</div></div>';
+    if(h.score!=null&&h.putts!=null)html+='<div class="sub center" style="margin-bottom:8px">'+tr('Green in regulation: <b>{0}</b>',tr(isGIR(h)?'yes':'no'))+'</div>';
   }
-  html+='<button class="cta" data-act="hnav" data-v="1" data-save="1">'+(last?'Done':'Next hole ›')+'</button><div class="center"><button class="link" data-act="mclose">Close</button></div>';
+  html+='<button class="cta" data-act="hnav" data-v="1" data-save="1">'+tr(last?'Done':'Next hole ›')+'</button><div class="center"><button class="link" data-act="mclose">'+tr('Close')+'</button></div>';
   $('#mcard').innerHTML=html;$('#modal').hidden=false;
 }
 function viewRound(id){
   const rd=S.rounds.find(x=>String(x.id)===String(id));if(!rd)return;const t=roundTotals(rd);
-  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><div><h3>'+esc(rd.course)+'</h3><div class="sub">'+new Date(rd.date).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})+' · '+(t.n?t.sc+' ('+fmtTo(t.to)+')':'no score')+'</div></div><button class="x" data-act="mclose">✕</button></div><div style="margin-top:12px">'+cardHTML(rd,false)+'</div><div style="margin-top:14px"><button class="sec" data-act="delRound" data-id="'+rd.id+'">Delete round</button></div>';
+  $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><div><h3>'+esc(rd.course)+'</h3><div class="sub">'+new Date(rd.date).toLocaleDateString(S.lang==='pt'?'pt-PT':undefined,{day:'numeric',month:'long',year:'numeric'})+' · '+(t.n?t.sc+' ('+fmtTo(t.to)+')':tr('no score'))+'</div></div><button class="x" data-act="mclose">✕</button></div><div style="margin-top:12px">'+cardHTML(rd,false)+'</div><div style="margin-top:14px"><button class="sec" data-act="delRound" data-id="'+rd.id+'">'+tr('Delete round')+'</button></div>';
   $('#modal').hidden=false;
 }
 
 /* ---------- bag / shots / settings ---------- */
 function rangeHTML(){
-  const act=S.clubs.filter(c=>c.on);if(!act.length)return '<div class="hint">Add a club in Bag first.</div>';
+  const act=S.clubs.filter(c=>c.on);if(!act.length)return '<div class="hint">'+tr('Add a club in Bag first.')+'</div>';
   const sel=S.clubs.find(c=>c.id===S.rsel&&c.on)||act[0];S.rsel=sel.id;
   const mine=S.rlog.filter(s=>s.club===sel.id),n=mine.length,avg=n?mine.reduce((a,s)=>a+s.d,0)/n:null;
   if(R.rd==null||R.rdClub!==sel.id){R.rd=avg!=null?avg:sel.carry;R.rdClub=sel.id;}
   const unit=ul(),L=mine.filter(s=>s.side==='l').length,Rt=mine.filter(s=>s.side==='r').length;
-  let h='<div class="hint" style="margin-top:0">Hit a ball, then enter how far it carried (from your launch monitor or the yardage markers) and which way it missed.</div>'+
-  '<div class="chiprow" style="flex-wrap:wrap">'+act.map(c=>'<button class="cond'+(c.id===sel.id?' pickon':'')+'" data-act="rsel" data-id="'+c.id+'">'+esc(c.name)+'</button>').join('')+'</div>'+
-  '<div class="field center"><div class="lbl">Carry distance</div><div class="stepper" style="justify-content:center"><button data-act="rstep" data-v="-5">−5</button><button data-act="rstep" data-v="-1">−</button><div class="v">'+d1(R.rd)+'<small> '+unit+'</small></div><button data-act="rstep" data-v="1">+</button><button data-act="rstep" data-v="5">+5</button></div></div>'+
-  '<div class="seg" style="justify-content:center;margin-bottom:14px">'+[['l','← Left'],['c','Straight'],['r','Right →']].map(m=>'<button class="'+((R.rmiss||'c')===m[0]?'on':'')+'" data-act="rmiss" data-v="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>'+
-  '<button class="cta" data-act="rlog">Log shot with '+esc(sel.name)+'</button>';
+  let h='<div class="hint" style="margin-top:0">'+tr('Hit a ball, then enter how far it carried (from your launch monitor or the yardage markers) and which way it missed.')+'</div>'+
+  '<div class="chiprow" style="flex-wrap:wrap">'+act.map(c=>'<button class="cond'+(c.id===sel.id?' pickon':'')+'" data-act="rsel" data-id="'+c.id+'">'+esc(tc(c.name))+'</button>').join('')+'</div>'+
+  '<div class="field center"><div class="lbl">'+tr('Carry distance')+'</div><div class="stepper" style="justify-content:center"><button data-act="rstep" data-v="-5">−5</button><button data-act="rstep" data-v="-1">−</button><div class="v">'+d1(R.rd)+'<small> '+unit+'</small></div><button data-act="rstep" data-v="1">+</button><button data-act="rstep" data-v="5">+5</button></div></div>'+
+  '<div class="seg" style="justify-content:center;margin-bottom:14px">'+[['l','← Left'],['c','Straight'],['r','Right →']].map(m=>'<button class="'+((R.rmiss||'c')===m[0]?'on':'')+'" data-act="rmiss" data-v="'+m[0]+'">'+tr(m[1])+'</button>').join('')+'</div>'+
+  '<button class="cta" data-act="rlog">'+tr('Log shot with {0}',esc(tc(sel.name)))+'</button>';
   if(n){
     const ds=mine.map(s=>s.d);
-    h+='<div class="stats" style="margin-top:16px"><div class="stat"><div class="lbl">Shots</div><div class="big">'+n+'</div></div><div class="stat"><div class="lbl">Average</div><div class="big">'+d1(avg)+'</div></div><div class="stat"><div class="lbl">Range</div><div class="big" style="font-size:18px">'+d1(Math.min.apply(null,ds))+'–'+d1(Math.max.apply(null,ds))+'</div></div></div>'+
-    '<div class="sub" style="margin:10px 0">Misses: '+L+' left · '+(n-L-Rt)+' straight · '+Rt+' right. Bag has '+esc(sel.name)+' at '+d1(sel.carry)+' '+unit+'.</div>'+
-    (n>=3?'<button class="sec" data-act="rapply" style="width:100%">Set my '+esc(sel.name)+' to '+d1(avg)+' '+unit+'</button>':'<div class="sub">Log 3 shots to update your bag.</div>');
+    h+='<div class="stats" style="margin-top:16px"><div class="stat"><div class="lbl">'+tr('Shots')+'</div><div class="big">'+n+'</div></div><div class="stat"><div class="lbl">'+tr('Average')+'</div><div class="big">'+d1(avg)+'</div></div><div class="stat"><div class="lbl">'+tr('Range|stat')+'</div><div class="big" style="font-size:18px">'+d1(Math.min.apply(null,ds))+'–'+d1(Math.max.apply(null,ds))+'</div></div></div>'+
+    '<div class="sub" style="margin:10px 0">'+tr('Misses: {0} left · {1} straight · {2} right. Bag has {3} at {4} {5}.',L,n-L-Rt,Rt,esc(tc(sel.name)),d1(sel.carry),unit)+'</div>'+
+    (n>=3?'<button class="sec" data-act="rapply" style="width:100%">'+tr('Set my {0} to {1} {2}',esc(tc(sel.name)),d1(avg),unit)+'</button>':'<div class="sub">'+tr('Log 3 shots to update your bag.')+'</div>');
   }
-  if(S.rlog.length)h+='<div style="margin-top:14px"><button class="sec" data-act="rclear">Clear this session</button></div>';
+  if(S.rlog.length)h+='<div style="margin-top:14px"><button class="sec" data-act="rclear">'+tr('Clear this session')+'</button></div>';
   return h;
 }
 function bagHTML(){
-  let h='<div class="hint"><b>Quick set:</b> how far does your 7 iron carry? All clubs scale from it.<div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="number" inputmode="decimal" id="q7" placeholder="7 iron carry ('+ul()+')" value="'+d1((S.clubs.find(c=>/^7/.test(c.name))||S.clubs[6]||{carry:130}).carry)+'"><button class="sec" data-act="quick" style="flex:none">Apply</button></div></div>'+
-  '<div class="brow h"><div>Club</div><div>Flies '+ul()+'</div><div>Runs '+ul()+'</div><div>On</div><div></div></div>';
+  let h='<div class="hint">'+tr('<b>Quick set:</b> how far does your 7 iron carry? All clubs scale from it.')+'<div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="number" inputmode="decimal" id="q7" placeholder="'+tr('7 iron carry ({0})',ul())+'" value="'+d1((S.clubs.find(c=>/^7/.test(c.name))||S.clubs[6]||{carry:130}).carry)+'"><button class="sec" data-act="quick" style="flex:none">'+tr('Apply')+'</button></div></div>'+
+  '<div class="brow h"><div>'+tr('Club')+'</div><div>'+tr('Flies {0}',ul())+'</div><div>'+tr('Runs {0}',ul())+'</div><div>'+tr('On')+'</div><div></div></div>';
   S.clubs.forEach(c=>{
-    h+='<div class="brow"><input type="text" data-f="cname" data-id="'+c.id+'" value="'+esc(c.name)+'"><input type="number" inputmode="decimal" data-f="ccarry" data-id="'+c.id+'" value="'+d1(c.carry)+'"><input type="number" inputmode="decimal" data-f="croll" data-id="'+c.id+'" value="'+d1(c.roll)+'"><input type="checkbox" data-f="con" data-id="'+c.id+'"'+(c.on?' checked':'')+'><button class="x" style="width:34px;height:34px;font-size:14px" data-act="delClub" data-id="'+c.id+'">✕</button></div>';
+    h+='<div class="brow"><input type="text" data-f="cname" data-id="'+c.id+'" value="'+esc(tc(c.name))+'"><input type="number" inputmode="decimal" data-f="ccarry" data-id="'+c.id+'" value="'+d1(c.carry)+'"><input type="number" inputmode="decimal" data-f="croll" data-id="'+c.id+'" value="'+d1(c.roll)+'"><input type="checkbox" data-f="con" data-id="'+c.id+'"'+(c.on?' checked':'')+'><button class="x" style="width:34px;height:34px;font-size:14px" data-act="delClub" data-id="'+c.id+'">✕</button></div>';
     const hs=S.hist[c.id],sp=spread(c);
     if((hs&&hs.length>=2)||sp.learned){let t='';
-      if(hs&&hs.length>=2){const avg=hs.reduce((a,b)=>a+b,0)/hs.length;t+='Measured avg <b style="color:var(--accd)">'+d1(avg)+'</b> ('+hs.length+' shots) vs set '+d1(c.carry+c.roll)+' <button class="sec" style="padding:5px 10px;font-size:12px" data-act="calib" data-id="'+c.id+'">Calibrate</button> ';}
-      if(sp.learned)t+='Learned miss: ±'+d1(sp.lat)+' wide, ±'+d1(sp.dep)+' deep';
+      if(hs&&hs.length>=2){const avg=hs.reduce((a,b)=>a+b,0)/hs.length;t+=tr('Measured avg <b>{0}</b> ({1} shots) vs set {2}',d1(avg),hs.length,d1(c.carry+c.roll)).replace('<b>','<b style="color:var(--accd)">')+' <button class="sec" style="padding:5px 10px;font-size:12px" data-act="calib" data-id="'+c.id+'">'+tr('Calibrate')+'</button> ';}
+      if(sp.learned)t+=tr('Learned miss: ±{0} wide, ±{1} deep',d1(sp.lat),d1(sp.dep));
       h+='<div class="sub" style="margin:-3px 0 10px 4px;font-size:13px">'+t+'</div>';}
   });
-  return h+'<div class="row" style="margin-top:10px"><button class="sec" data-act="addClub">＋ Add club</button><button class="sec" data-act="resetBag">Reset defaults</button></div><div class="hint"><b>Flies</b> = how far the ball flies. <b>Runs</b> = how far it rolls after landing. Untick a club you don\'t carry.</div><h4 class="lbl" style="margin:22px 0 8px">Shot history</h4>'+shotsHTML();
+  return h+'<div class="row" style="margin-top:10px"><button class="sec" data-act="addClub">'+tr('＋ Add club')+'</button><button class="sec" data-act="resetBag">'+tr('Reset defaults')+'</button></div><div class="hint">'+tr("<b>Flies</b> = how far the ball flies. <b>Runs</b> = how far it rolls after landing. Untick a club you don't carry.")+'</div><h4 class="lbl" style="margin:22px 0 8px">'+tr('Shot history')+'</h4>'+shotsHTML();
 }
 function shotsHTML(){
-  if(!S.log.length)return '<div class="hint">No shots yet. Tap <b>Hit [club]</b> on the main screen, play the shot, then tap <b>I\'m at my ball</b>. Your real GPS distances and misses build up here. After 5 shots with a club, its landing zone is learned from you.</div>';
-  let h='';S.log.slice().reverse().slice(0,60).forEach(s=>{const c=S.clubs.find(x=>x.id===s.club);h+='<div class="shot"><b>'+esc(c?c.name:'?')+(s.hole?' <small class="sub">· hole '+s.hole+'</small>':'')+'</b><span>'+d1(s.actual)+' '+ul()+' <span class="sub">(planned '+d1(s.planned)+')</span></span></div>';});
-  return h+'<div style="margin-top:12px"><button class="sec" data-act="clearLog">Clear shot history</button></div>';
+  if(!S.log.length)return '<div class="hint">'+tr("No shots yet. Tap <b>Hit [club]</b> on the main screen, play the shot, then tap <b>I'm at my ball</b>. Your real GPS distances and misses build up here. After 5 shots with a club, its landing zone is learned from you.")+'</div>';
+  let h='';S.log.slice().reverse().slice(0,60).forEach(s=>{const c=S.clubs.find(x=>x.id===s.club);h+='<div class="shot"><b>'+esc(c?tc(c.name):'?')+(s.hole?' <small class="sub">'+tr('· hole {0}',s.hole)+'</small>':'')+'</b><span>'+d1(s.actual)+' '+ul()+' <span class="sub">'+tr('(planned {0})',d1(s.planned))+'</span></span></div>';});
+  return h+'<div style="margin-top:12px"><button class="sec" data-act="clearLog">'+tr('Clear shot history')+'</button></div>';
 }
 function settingsHTML(){
-  return '<h4 class="lbl">Units</h4><div class="seg"><button class="'+(S.units==='m'?'on':'')+'" data-act="units" data-v="m">Metres</button><button class="'+(S.units==='y'?'on':'')+'" data-act="units" data-v="y">Yards</button></div>'+
-  '<h4 class="lbl" style="margin-top:18px">I hit</h4><div class="seg"><button class="'+(S.lefty?'':'on')+'" data-act="hand" data-v="0">Right-handed</button><button class="'+(S.lefty?'on':'')+'" data-act="hand" data-v="1">Left-handed</button></div>'+
-  '<h4 class="lbl" style="margin-top:18px">Scorecard</h4><div class="seg"><button class="'+(S.stats?'':'on')+'" data-act="togstats" data-v="0">Score only</button><button class="'+(S.stats?'on':'')+'" data-act="togstats" data-v="1">Putts, fairways, greens</button></div>'+
-  '<div class="hint" style="margin-top:18px"><b>How the caddy thinks.</b> It adjusts the distance for wind (about 1% per mph into the wind, half that downwind), cold air (about 2% per 10°C), rain, rough or sand, and slope, then picks the club whose carry plus roll matches. The green oval is where about 80% of your shots with that club should finish; it starts as an estimate and learns from the shots you log. These are rules of thumb. Your logged shots make it more accurate.</div>'+
-  '<div class="hint">Weather: Open-Meteo. Height above sea level and slope between you and the target: Copernicus DEM (90 m grid) via Open-Meteo, so slope can be a few metres off; you can always correct it. Map imagery: Esri.</div>'+
-  '<div style="margin-top:12px"><button class="sec" data-act="resetAll">Reset all my data</button></div>';
+  return '<h4 class="lbl">'+tr('Language')+'</h4><div class="seg"><button class="'+(S.lang==='pt'?'':'on')+'" data-act="lang" data-v="en">English</button><button class="'+(S.lang==='pt'?'on':'')+'" data-act="lang" data-v="pt">Português</button></div>'+
+  '<h4 class="lbl" style="margin-top:18px">'+tr('Units')+'</h4><div class="seg"><button class="'+(S.units==='m'?'on':'')+'" data-act="units" data-v="m">'+tr('Metres')+'</button><button class="'+(S.units==='y'?'on':'')+'" data-act="units" data-v="y">'+tr('Yards')+'</button></div>'+
+  '<h4 class="lbl" style="margin-top:18px">'+tr('I hit')+'</h4><div class="seg"><button class="'+(S.lefty?'':'on')+'" data-act="hand" data-v="0">'+tr('Right-handed')+'</button><button class="'+(S.lefty?'on':'')+'" data-act="hand" data-v="1">'+tr('Left-handed')+'</button></div>'+
+  '<h4 class="lbl" style="margin-top:18px">'+tr('Scorecard')+'</h4><div class="seg"><button class="'+(S.stats?'':'on')+'" data-act="togstats" data-v="0">'+tr('Score only')+'</button><button class="'+(S.stats?'on':'')+'" data-act="togstats" data-v="1">Putts, fairways, greens</button></div>'+
+  '<div class="hint" style="margin-top:18px">'+tr('<b>How the caddy thinks.</b> It adjusts the distance for wind (about 1% per mph into the wind, half that downwind), cold air (about 2% per 10°C), rain, rough or sand, and slope, then picks the club whose carry plus roll matches. The green oval is where about 80% of your shots with that club should finish; it starts as an estimate and learns from the shots you log. These are rules of thumb. Your logged shots make it more accurate.')+'</div>'+
+  '<div class="hint">'+tr('Weather: Open-Meteo. Height above sea level and slope between you and the target: Copernicus DEM (90 m grid) via Open-Meteo, so slope can be a few metres off; you can always correct it. Map imagery: Esri.')+'</div>'+
+  '<div style="margin-top:12px"><button class="sec" data-act="resetAll">'+tr('Reset all my data')+'</button></div>';
 }
 
 $('#menuBtn').addEventListener('click',()=>openPanel());
@@ -618,6 +714,7 @@ function act(a,b){
     case 'tilt':c.tilt=Number(v);break;
     case 'stance':c.stance=Number(v);break;
     case 'ballh':c.ballh=Number(v);break;
+    case 'lang':S.lang=v==='pt'?'pt':'en';save();applyStatic();openPanel('settings');refresh();return;
     case 'hand':S.lefty=v==='1';save();openPanel('settings');refresh();return;
     case 'elev':R.elevSrc='manual';c.elev=Math.round((c.elev+toM(1)*Number(v))*10)/10;break;
     case 'pinmode':R.placePin=true;break;
@@ -629,20 +726,20 @@ function act(a,b){
     case 'tp':c.temp+=Number(v);S.wxAuto=false;save();openCond();refresh();return;
     case 'rain':c.rain=Number(v);S.wxAuto=false;save();openCond();refresh();return;
     case 'ground':c.ground=Number(v);save();openCond();refresh();return;
-    case 'wx':S.wxAuto=true;fetchWeather().then(ok=>{if(!ok)alertNote('No connection – enter manually');});return;
+    case 'wx':S.wxAuto=true;fetchWeather().then(ok=>{if(!ok)alertNote(tr('No connection – enter manually'));});return;
     case 'hit':S.pending={club:b.dataset.club,start:R.me?{lat:R.me.lat,lng:R.me.lng}:null,target:(function(){const g=R.lay||R.target||R.pin;return g?{lat:g.lat,lng:g.lng}:null;})(),planned:Number(b.dataset.d),exp:Number(b.dataset.e),drift:Number(b.dataset.a)||0};break;
     case 'cancelHit':S.pending=null;break;
-    case 'mark':{const p=S.pending;if(p&&p.start&&R.me){const d=dist(p.start,R.me);if(R.acc&&R.acc>25){R.note='GPS is too weak to measure ('+Math.round(R.acc)+' m). Try again in a few seconds.';refresh();return;}if(d<10){R.note='That is under 10 m from where you hit. Walk to your ball first.';refresh();return;}R.note='';{(S.hist[p.club]=S.hist[p.club]||[]).push(d);S.hist[p.club]=S.hist[p.club].slice(-15);
+    case 'mark':{const p=S.pending;if(p&&p.start&&R.me){const d=dist(p.start,R.me);if(R.acc&&R.acc>25){R.note=tr('GPS is too weak to measure ({0} m). Try again in a few seconds.',Math.round(R.acc));refresh();return;}if(d<10){R.note=tr('That is under 10 m from where you hit. Walk to your ball first.');refresh();return;}R.note='';{(S.hist[p.club]=S.hist[p.club]||[]).push(d);S.hist[p.club]=S.hist[p.club].slice(-15);
       if(p.target){const tb=bearing(p.start,p.target),bb=bearing(p.start,R.me);(S.miss[p.club]=S.miss[p.club]||[]).push({lat:d*Math.sin((bb-tb)*rad)-(p.drift||0),de:d-(p.exp||p.planned)});S.miss[p.club]=S.miss[p.club].slice(-20);}
       S.log.push({t:Date.now(),club:p.club,planned:p.planned,actual:d,hole:S.round?S.round.cur+1:null});S.log=S.log.slice(-200);}}S.pending=null;break;}
     case 'units':S.units=v;save();openPanel('settings');refresh();return;
     case 'quick':{const val=toM(Number($('#q7').value)||0);const cl=S.clubs.find(x=>/^7/.test(x.name))||S.clubs[6]||S.clubs[0];if(val>20&&cl){const f=val/cl.carry;S.clubs.forEach(x=>{x.carry*=f;x.roll*=f;});S.setup=true;save();openPanel('bag');}return;}
-    case 'addClub':S.clubs.push({id:'c'+(S.nid++),name:'New club',carry:100,roll:5,on:true});S.setup=true;save();openPanel('bag');return;
+    case 'addClub':S.clubs.push({id:'c'+(S.nid++),name:tr('New club'),carry:100,roll:5,on:true});S.setup=true;save();openPanel('bag');return;
     case 'delClub':S.clubs=S.clubs.filter(x=>x.id!==b.dataset.id);delete S.hist[b.dataset.id];delete S.miss[b.dataset.id];save();openPanel('bag');return;
     case 'resetBag':S.clubs=defaultClubs();S.hist={};S.miss={};S.setup=false;save();openPanel('bag');return;
     case 'calib':{const cl=S.clubs.find(x=>x.id===b.dataset.id),hs=S.hist[b.dataset.id];if(cl&&hs&&hs.length){const avg=hs.reduce((x,y)=>x+y,0)/hs.length,f=avg/(cl.carry+cl.roll);cl.carry*=f;cl.roll*=f;S.hist[b.dataset.id]=[];}save();openPanel('bag');return;}
     case 'clearLog':S.log=[];S.hist={};S.miss={};save();openPanel('bag');return;
-    case 'resetAll':if(!resetArm){resetArm=true;b.textContent='Tap again to confirm';return;}try{localStorage.removeItem(KEY);}catch(e){}location.reload();return;
+    case 'resetAll':if(!resetArm){resetArm=true;b.textContent=tr('Tap again to confirm');return;}try{localStorage.removeItem(KEY);}catch(e){}location.reload();return;
     case 'rsel':S.rsel=b.dataset.id;R.rd=null;save();openPanel('range');return;
     case 'rstep':R.rd=Math.max(0,(R.rd||0)+toM(Number(v)));openPanel('range');return;
     case 'rmiss':R.rmiss=v;openPanel('range');return;
@@ -652,7 +749,7 @@ function act(a,b){
     case 'picker':openPicker();return;
     case 'selclub':R.sel=b.dataset.id;$('#modal').hidden=true;break;
         case 'nh':S.nh=Number(v);R.cname=($('#rname')||{}).value||R.cname;save();openPanel('round');return;
-    case 'startRound':{const name=(($('#rname')||{}).value||'').trim()||'My round';R.cname='';S.round={id:Date.now(),date:Date.now(),course:name,cur:0,holes:Array.from({length:S.nh},(_,i)=>({n:i+1,par:4,score:null,putts:null,fw:null}))};save();openPanel('round');refresh();return;}
+    case 'startRound':{const name=(($('#rname')||{}).value||'').trim()||tr('My round');R.cname='';S.round={id:Date.now(),date:Date.now(),course:name,cur:0,holes:Array.from({length:S.nh},(_,i)=>({n:i+1,par:4,score:null,putts:null,fw:null}))};save();openPanel('round');refresh();return;}
     case 'hole':$('#panel').hidden=true;openHole(b.dataset.i);refresh();return;
     case 'hstep':{const h=S.round.holes[S.round.cur],k=b.dataset.k,d=Number(v),base=k==='score'?h.par:2;h[k]=Math.max(k==='score'?1:0,(h[k]==null?base:h[k])+d);save();openHole();updatePill();return;}
     case 'hpar0':{const h=S.round.holes[S.round.cur];h.score=h.par;save();openHole();updatePill();return;}
@@ -662,9 +759,9 @@ function act(a,b){
     case 'hpar':{const h=S.round.holes[S.round.cur];h.par=Number(v);if(h.par===3)h.fw=null;save();openHole();updatePill();return;}
     case 'hfw':{const h=S.round.holes[S.round.cur];h.fw=h.fw===v?null:v;save();openHole();return;}
     case 'hnav':{const rd=S.round,n=rd.holes.length,nx=rd.cur+Number(v);if(b.dataset.save){const ch=rd.holes[rd.cur];if(ch.score==null)ch.score=ch.par;}if(nx>=n){$('#modal').hidden=true;save();refresh();return;}rd.cur=Math.max(0,nx);save();openHole();updatePill();return;}
-    case 'finishRound':{if(!R.armFinish){R.armFinish=true;b.textContent='Tap again to finish';return;}R.armFinish=false;const rd=S.round;rd.end=Date.now();if(roundTotals(rd).n>0)S.rounds.unshift(rd);S.rounds=S.rounds.slice(0,100);S.round=null;save();openPanel('round');refresh();return;}
+    case 'finishRound':{if(!R.armFinish){R.armFinish=true;b.textContent=tr('Tap again to finish');return;}R.armFinish=false;const rd=S.round;rd.end=Date.now();if(roundTotals(rd).n>0)S.rounds.unshift(rd);S.rounds=S.rounds.slice(0,100);S.round=null;save();openPanel('round');refresh();return;}
     case 'viewRound':viewRound(b.dataset.id);return;
-    case 'delRound':{if(R.armDel!==b.dataset.id){R.armDel=b.dataset.id;b.textContent='Tap again to delete';return;}R.armDel=null;S.rounds=S.rounds.filter(x=>String(x.id)!==String(b.dataset.id));save();$('#modal').hidden=true;if(!$('#panel').hidden)openPanel('round');return;}
+    case 'delRound':{if(R.armDel!==b.dataset.id){R.armDel=b.dataset.id;b.textContent=tr('Tap again to delete');return;}R.armDel=null;S.rounds=S.rounds.filter(x=>String(x.id)!==String(b.dataset.id));save();$('#modal').hidden=true;if(!$('#panel').hidden)openPanel('round');return;}
     default:chg=false;
   }
   if(chg){save();refresh();}
@@ -685,8 +782,11 @@ document.addEventListener('click',e=>{const d=e.target.closest('#dial');if(d)dia
 $('#grab').addEventListener('click',()=>{R.expanded=!R.expanded;renderSheet();});
 
 /* ================= boot ================= */
-function openSetup(){$('#mcard').innerHTML='<h3>Welcome to Caddy</h3><div class="sub" style="margin:8px 0 14px">One question to start: how far do you hit your 7 iron? Every other club is set from it, and you can change them anytime in Bag.</div><div class="field"><input type="number" inputmode="decimal" id="q7s" value="'+d1(130)+'"><div class="sub" style="margin-top:6px">in '+(S.units==='y'?'yards':'metres')+'</div></div><button class="cta" data-act="setup7">Start</button><div class="center"><button class="link" data-act="skipSetup">Use the defaults for now</button></div>';$('#modal').hidden=false;}
-renderSheet();startGPS();if(!S.setup)setTimeout(openSetup,400);
+function openSetup(){$('#mcard').innerHTML='<h3>'+tr('Welcome to Caddy')+'</h3><div class="sub" style="margin:8px 0 14px">'+tr('One question to start: how far do you hit your 7 iron? Every other club is set from it, and you can change them anytime in Bag.')+'</div><div class="field"><input type="number" inputmode="decimal" id="q7s" value="'+d1(130)+'"><div class="sub" style="margin-top:6px">'+tr(S.units==='y'?'in yards':'in metres')+'</div></div><button class="cta" data-act="setup7">'+tr('Start')+'</button><div class="center"><button class="link" data-act="skipSetup">'+tr('Use the defaults for now')+'</button></div>';$('#modal').hidden=false;}
+function applyStatic(){document.documentElement.lang=S.lang==='pt'?'pt-PT':'en';document.title=tr('Caddy – Golf GPS & Club Advisor');
+  const tb={round:'Round',range:'Range',bag:'Bag',settings:'Settings'};document.querySelectorAll('#ptabs button').forEach(b=>b.textContent=tr(tb[b.dataset.p]));
+  $('#locate').setAttribute('aria-label',tr('Centre on me'));setGps(R.g?R.g[0]:'wait',R.g?R.g[1]:'Finding GPS…');}
+applyStatic();renderSheet();startGPS();if(!S.setup)setTimeout(openSetup,400);
 try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
 window.__caddy={doElev,startLay,moveLay,endLay,S,R,calc,recommend,setMe,placeTarget,placePinAt,refresh,spread,activeCtx,ln};
 })();
