@@ -259,18 +259,25 @@ function swLoop(){
     if(R_.swung&&now-R_.mv>900)swFinish();
     else if(now-R_.t0>18000)swFinish();
   }
-  else if(SWV.state==='auto'&&SWV.auto.phase==='armed'){
+  else if(SWV.state==='auto'&&(SWV.auto.phase==='armed'||SWV.auto.phase==='settle')){
     const A=SWV.auto,now=performance.now();
     if(L&&W&&vis){
       A.vt=0;
       A.buf.push({t:now,i:swLm(L),w:W.map(p=>[p.x,p.y,p.z]),g:(A.k=(A.k||0)+1)%2?swGrab(v):null});
       while(A.buf.length&&now-A.buf[0].t>(A.swung?9000:4500))A.buf.shift();
-      swSpd(A,L,now);if(!A.swung&&A.sp>3.5){A.swung=true;A.t1=now;}if(A.sp>0.8)A.mv=now;
+      swSpd(A,L,now);
+      if(A.phase==='settle'){
+        if(A.sp<1.0&&A.p){if(!A.st0||!A.h0||Math.hypot(A.p[0]-A.h0[0],A.p[1]-A.h0[1])>0.03){A.st0=now;A.h0=A.p.slice();}if(now-A.st0>=1200){A.phase='armed';A.swung=false;A.t1=0;A.mv=now;swBeep(880,170);swMsg(T('Ready. Swing whenever you like.','Pronto. Faz o swing quando quiseres.'));}}
+        else A.st0=0;
+      }else{
+        if(!A.swung&&A.sp>3.5){A.swung=true;A.t1=now;}if(A.sp>0.8)A.mv=now;
+      }
     }else if(!A.swung){
+      A.st0=0;
       if(!A.vt)A.vt=now;
       if(now-A.vt>4000&&now-(A.lastWarn||0)>15000){A.lastWarn=now;A.vt=now;swSay(T('Step back. I cannot see your whole body.','Afasta-te. Não vejo o corpo todo.'));}
     }
-    if(A.swung&&(now-A.mv>900||now-A.t1>6000))swAutoDone();
+    if(A.phase==='armed'&&A.swung&&(now-A.mv>900||now-A.t1>6000))swAutoDone();
   }
 }
 function swRecord(){
@@ -316,12 +323,12 @@ function swSessStart(){
   swMsg(T('Get into position. I will start listening in a moment.','Posiciona-te. Vou começar a ouvir já.'));
   const c0=swClub(),cn=c0?(S.lang==='pt'?tc(c0.name):c0.name):'';
   if(SWV.drill&&typeof drIntro==='function'){swSay(drIntro(),()=>setTimeout(swArm,2000));return;}
-  swSay(T('Session started with your '+cn+'. Get into position and swing whenever you are ready. If you change club, tap it on the screen.','Sessão iniciada com o teu '+cn+'. Posiciona-te e faz o swing quando quiseres. Se mudares de taco, toca nele no ecrã.'),()=>setTimeout(swArm,2000));
+  swSay(T('Session started with your '+cn+'. Take your address and hold still until you hear the beep, then swing. Do this for every shot. If you change club, tap it on the screen.','Sessão iniciada com o teu '+cn+'. Põe-te em address e fica parado até ouvires o apito, depois faz o swing. Faz isto em todas as tacadas. Se mudares de taco, toca nele no ecrã.'),()=>setTimeout(swArm,2000));
 }
 function swArm(){
   if(SWV.state!=='auto'||!SWV.auto)return;
-  const A=SWV.auto;A.phase='armed';A.buf=[];A.p=null;A.sp=0;A.swung=false;A.mv=performance.now();A.t1=0;A.vt=0;
-  swMsg(T('Listening for your swing. Go ahead.','À escuta do teu swing. Quando quiseres.'));
+  const A=SWV.auto;A.phase='settle';A.buf=[];A.p=null;A.sp=9;A.swung=false;A.mv=performance.now();A.t1=0;A.vt=0;A.st0=0;
+  swMsg(T('Address the ball and hold still. I will beep when I am ready.','Põe-te em address e fica parado. Eu apito quando estiver pronto.'));
 }
 function swAutoDone(){
   const A=SWV.auto,S_=SWV.sess;if(!A||!S_)return;A.phase='busy';
