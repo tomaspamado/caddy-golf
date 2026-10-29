@@ -71,7 +71,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .x{width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);font-size:18px}
 .obody{flex:1;overflow-y:auto;padding:4px 16px calc(env(safe-area-inset-bottom) + 20px)}
 .tabs{display:flex;gap:6px;padding:4px 16px 10px}
-.tabs button{flex:1;border:0;background:var(--soft);border-radius:12px;padding:0 4px;min-height:48px;font-weight:700;font-size:15px;color:var(--mut)}
+.tabs button{flex:1;border:0;background:var(--soft);border-radius:12px;padding:0 2px;min-height:48px;font-weight:700;font-size:13px;color:var(--mut)}
 .tabs button.on{background:var(--ink);color:#fff}
 #modal{position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}
 #modal .card{background:#fff;width:100%;border-radius:22px 22px 0 0;max-height:92dvh;overflow-y:auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 18px)}
@@ -150,7 +150,7 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 <div class="overlay" id="panel" hidden>
   <div class="ohead"><h2 id="ptitle">Menu</h2><button class="x" id="pclose">✕</button></div>
   <div class="tabs" id="ptabs">
-    <button data-p="round" class="on">Round</button><button data-p="range">Range</button><button data-p="bag">Bag</button><button data-p="settings">Settings</button>
+    <button data-p="round" class="on">Round</button><button data-p="range">Range</button><button data-p="swing">Swing</button><button data-p="bag">Bag</button><button data-p="settings">Settings</button>
   </div>
   <div class="obody" id="pbody"></div>
 </div>
@@ -164,6 +164,7 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 <script src="panel.js?v=11"></script>
 <script src="holes.js?v=11"></script>
 <script src="app.js?v=11"></script>
+<script src="swing.js?v=12"></script>
 
 <script>if("serviceWorker" in navigator&&/^https:|^http:\/\/localhost/.test(location.protocol+"//"+location.hostname))navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
 </body>
