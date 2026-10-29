@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-29 (overnight) – Português (pt-PT)
+Added European Portuguese as a language.
+
+Changed:
+- New language choice in Settings (English / Português), the only new visible UI. Defaults from the phone language (pt* = Portuguese) and is saved in the state as `lang`.
+- Every visible string is translated through a small table and a `tr()` helper: sheet, wind and conditions phrases, picker, Details, Conditions, menu tabs (Volta, Treino, Saco, Definições), scorecard, hole dialog, Range, Bag, Settings, first-run dialog, hints, buttons and error notes.
+- Natural golf words: taco, bandeira, green, fairway, buraco, pancadas, vento, alvo, tacada, lay-up. Default clubs show as Driver, Madeira 3, Madeira 5, Híbrido 4, Ferro 5–9, Pitching Wedge, Sand Wedge (stored names stay English, so saved data still works). Wind compass uses N, E, S, O.
+- Dates use the Portuguese format in Portuguese mode.
+- Data key 'caddy.v1' unchanged; old saves load and pick the language from the phone.
+
+Tested (Playwright, English and Português, 390x800 and 360x640, mocked GPS): first-run dialog, tap target, recommendation, landing oval, picker, Conditions, Details, Hit then "I'm at my ball", 9-hole round with three holes scored, finish round, past round view, Range log 3 shots and apply, Bag, Settings language switch, no page errors, no cut-off text, tap targets >= 48px. Screenshots checked in Portuguese. Only golf terms stay in English on purpose (Lay-up, Total, Putts, fairways, greens).
+
+Not done (ideas for next run): the earlier list still stands (over-swing warning, Range misses not feeding the oval, Calibrate ignoring wind/slope, temperature in °C in yards mode, Settings explainer paragraphs and picker "±N largura" jargon could go, Bag ✕ has no undo). Also: "1 buracos" wording when one hole is left (EN has the same "1 more holes").
+
 ## 2026-10-29 – golfer feedback round 2
 Four simulated golfers (12-handicap student, beginner, low-handicap maths checker, older player in sun) tested the app. Scores: 7.5, 6.5, 7.5 (trust), 7.
 
