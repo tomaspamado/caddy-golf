@@ -220,6 +220,9 @@ function swLoop(){
   const L=r.landmarks&&r.landmarks[0],W=r.worldLandmarks&&r.worldLandmarks[0];
   swDrawLm(cv,swLm(L),null);
   const vis=!!(L&&W&&swVisible(L));
+  const rd=$s('swred'),bx=$s('swbox');
+  if(rd){const bad=!vis&&(SWV.state==='live'||SWV.state==='auto'||SWV.state==='rec'||SWV.state==='count');rd.style.opacity=bad?'1':'0';rd.firstChild.style.transform=SWV.cam==='user'?'scaleX(-1)':'none';}
+  if(bx)bx.style.boxShadow=(vis&&SWV.state!=='loading')?'0 0 0 4px #22c55e':'0 0 0 4px #dc2626';
   if(SWV.state==='live'){swMsg(vis?T('Good. Your whole body is visible. Tap Record when ready.','Bom. O corpo todo está visível. Toca em Gravar quando estiveres pronto.'):T('Step back until your whole body is in the picture.','Afasta-te até o corpo todo aparecer.'),!vis);}
   else if(SWV.state==='rec'){
     const R_=SWV.rec,now=performance.now();
@@ -356,7 +359,7 @@ function swingHTML(){
   '<div class="lbl" style="margin:4px 0 6px">'+T('Which club are you swinging?','Que taco vais usar?')+'</div>'+swClubChips()+
   seg('view',SWV.view,[['dtl',T('Down the line','Por trás')],['fo',T('Face on','De frente')]])+'<div id="swtip" class="sub" style="margin:-4px 0 10px"></div>'+
   seg('cam',SWV.cam,[['environment',T('Back camera','Câmara traseira')],['user',T('Front camera','Câmara frontal')]])+seg('voice',SWV.voice?'1':'0',[['1',T('Voice on','Voz ligada')],['0',T('Voice off','Voz desligada')]])+
-  '<div id="swbox" style="display:none;position:relative;background:#000;border-radius:14px;overflow:hidden;max-height:62vh;margin:0 auto"><video id="swv" playsinline muted autoplay style="width:100%;height:100%;object-fit:contain;display:block"></video><canvas id="swc" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>'+
+  '<div id="swbox" style="display:none;position:relative;background:#000;border-radius:14px;overflow:hidden;max-height:62vh;margin:0 auto"><video id="swv" playsinline muted autoplay style="width:100%;height:100%;object-fit:contain;display:block"></video><canvas id="swc" style="position:absolute;inset:0;width:100%;height:100%"></canvas><div id="swred" style="position:absolute;inset:0;background:rgba(220,38,38,.42);opacity:0;transition:opacity .15s;pointer-events:none;display:grid;place-items:center"><div style="background:#fff;color:#b91c1c;font-weight:800;padding:8px 14px;border-radius:999px">'+T('Step back: I cannot see all of you','Afasta-te: não te vejo todo')+'</div></div></div>'+
   '<div id="swmsg" class="aim" style="margin:8px 0;background:var(--soft);color:var(--ink)"></div><div id="swsess"></div><div id="swbtns"></div><div id="swres"></div>';
 }
 function swingMount(){if(S.swVoice===false)SWV.voice=false;if(!S.swClub){const c=swClub();if(c)S.swClub=c.id;}swView();swSessUI();swBtns();swMsg(T('Tap Start to turn on the camera.','Toca em Começar para ligar a câmara.'));}
