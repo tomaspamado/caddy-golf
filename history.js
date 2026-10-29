@@ -19,13 +19,21 @@ function hxThumb(f){
   x.fillStyle='#fbbf24';[15,16].forEach(k=>{x.beginPath();x.arc(L[k][0]*c.width,L[k][1]*c.height,3,0,7);x.fill();});
   return c.toDataURL('image/jpeg',.65);
 }
+function hxCurve(res){const c=res.curve,n=c.length,m=Math.min(70,n),o=[];for(let i=0;i<m;i++)o.push(+c[Math.round(i*(n-1)/(m-1))].toFixed(3));return o;}
+function hxChart(x){
+  if(!x.cv||!x.ix)return'';
+  const w=300,h=64,mn=Math.min.apply(null,x.cv),mx=Math.max.apply(null,x.cv),r=(mx-mn)||1,X=f=>f*w,Y=v=>6+(v-mn)/r*(h-12);
+  const pts=x.cv.map((v,i)=>(X(i/(x.cv.length-1))).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  const cols=['#2563eb','#f59e0b','#dc2626','#16a34a'],nm=['A','T','I','F'];
+  return '<div class="lbl" style="margin:12px 0 4px">'+T('Hand height through the swing (what I detected)','Altura das mãos ao longo do swing (o que detetei)')+'</div><svg viewBox="0 0 300 '+(h+14)+'" style="width:100%;background:var(--soft);border-radius:10px"><polyline points="'+pts+'" fill="none" stroke="#6b7a71" stroke-width="2"/>'+x.ix.map((f,i)=>'<line x1="'+X(f)+'" x2="'+X(f)+'" y1="0" y2="'+h+'" stroke="'+cols[i]+'" stroke-width="2"/><text x="'+Math.min(292,Math.max(2,X(f)-3))+'" y="'+(h+11)+'" font-size="11" font-weight="700" fill="'+cols[i]+'">'+nm[i]+'</text>').join('')+'</svg><div class="sub" style="font-size:12px">A '+T('address','address')+' · T '+T('top','topo')+' · I '+T('impact','impacto')+' · F '+T('finish','final')+'. '+T('Higher on the chart means hands higher.','Mais alto no gráfico significa mãos mais altas.')+'</div>';
+}
 /* called after each analysed swing of a session */
 function hxKeep(res,frames,extra){
   const s=SWV.sess;if(!s)return;
   s.rec=s.rec||[];s.labels=s.labels||{};
   res.M.forEach(m=>{s.labels[m.key]=m.label;});
   const th=res.idx.map(k=>{const f=hxNear(frames,k);try{return f?hxThumb(f):'';}catch(e){return'';}});
-  s.rec.push(Object.assign({score:res.score,tempo:+res.tempo.toFixed(1),M:res.M.map(m=>[m.key,m.val,m.st]),th:th,tips:res.tips.map(t=>t.label),hp:res.hpath,pause:+res.pauseTop.toFixed(1),t:Date.now()},extra||{}));
+  s.rec.push(Object.assign({score:res.score,tempo:+res.tempo.toFixed(1),M:res.M.map(m=>[m.key,m.val,m.st]),th:th,tips:res.tips.map(t=>t.label),hp:res.hpath,cv:hxCurve(res),ix:res.idx.map(k=>+(k/res.n).toFixed(3)),pause:+res.pauseTop.toFixed(1),t:Date.now()},extra||{}));
 }
 function hxSave(s){
   if(!s||!s.rec||!s.rec.length)return;
@@ -43,6 +51,7 @@ function hxHTML(){
     const sel=Math.min(HX.sel,r.sw.length-1),sw=r.sw[sel];
     let h='<button class="link" data-hx="back" style="padding:0">‹ '+T('All sessions','Todas as sessões')+'</button><div class="vhtitle" style="margin:6px 0">'+esc(isD?(S.lang==='pt'?r.name[1]:r.name[0]):T('Swing session','Sessão de swings'))+'</div><div class="sub">'+hxFmt(r.t)+' · '+esc(r.club?tc(r.club):'')+' · '+r.sw.length+' '+T('swings','swings')+' · '+(r.view==='fo'?T('face on','de frente'):T('down the line','por trás'))+'</div>';
     h+='<div class="lbl" style="margin:14px 0 6px">'+T('Photos','Fotos')+' · '+T('swing','swing')+' '+(sel+1)+'</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+['Address','Top','Impact','Finish'].map((n,i)=>'<div>'+(sw.th&&sw.th[i]?'<img src="'+sw.th[i]+'" style="width:100%;border-radius:8px;display:block">':'<div style="height:90px;background:var(--soft);border-radius:8px"></div>')+'<div class="sub" style="text-align:center;font-size:12px">'+T(n,['Address','Topo','Impacto','Final'][i])+'</div></div>').join('')+'</div>';
+    h+=hxChart(sw);
     if(sw.tips&&sw.tips.length)h+='<div class="sub" style="margin-top:8px"><b>'+T('Work on: ','Trabalhar: ')+'</b>'+esc(sw.tips.join(', '))+'</div>';
     if(r.view==='fo'&&sw.hp!=null)h+='<div class="sub">'+T('Hands path into impact: ','Trajetória das mãos no impacto: ')+sw.hp+'°</div>';
     h+='<div class="lbl" style="margin:16px 0 6px">'+T('All numbers (tap a row for its photos)','Todos os números (toca numa linha para ver as fotos)')+'</div><div style="overflow-x:auto;border:1px solid var(--line);border-radius:12px"><table style="border-collapse:collapse;font-size:13px;min-width:100%"><thead><tr style="background:var(--soft);text-align:left"><th style="padding:8px">#</th>'+(isD?'<th style="padding:8px">✓</th>':'')+'<th style="padding:8px">'+T('Score','Nota')+'</th>'+keys.map(k=>'<th style="padding:8px;white-space:nowrap">'+esc((r.labels&&r.labels[k])||k)+'</th>').join('')+'</tr></thead><tbody>'+
