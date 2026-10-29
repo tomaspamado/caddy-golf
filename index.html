@@ -115,6 +115,11 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 .pn{font-size:30px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
 .tag{white-space:nowrap;background:#fff;color:var(--ink);border-radius:999px;font-weight:800;font-size:13px;padding:3px 9px;box-shadow:0 1px 6px rgba(0,0,0,.45);transform:translate(-50%,-50%);display:inline-block}
 .tag.y{background:#ffe08a}
+.tag.up{transform:translate(-50%,-190%)}
+.hzm{width:22px;height:22px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hz{margin-top:8px;background:#fdecea;color:#8a1c1c;border-radius:12px;padding:9px 12px;font-weight:700;font-size:15px}
+.hz div{margin-top:3px}
+.hz div:first-child{margin-top:0}
 .ly{width:30px;height:30px;border-radius:50%;background:rgba(255,193,7,.35);border:3px solid #ffc107;box-shadow:0 1px 8px rgba(0,0,0,.6);display:grid;place-items:center}
 .ly::after{content:"";width:10px;height:10px;border-radius:50%;background:#ffc107;border:2px solid #fff}
 </style>
@@ -158,13 +163,14 @@ const PT={
 'Play your shot, walk to the ball, then tap below to log the real distance.':'Joga a tacada, vai até à bola e toca em baixo para registar a distância real.',
 "📍 I'm at my ball":'📍 Estou na minha bola','Cancel':'Cancelar',
 'Finding your position…':'A procurar a tua posição…','Allow location access when asked. No signal?':'Permite o acesso à localização quando pedido. Sem sinal?','Set my position on the map':'Definir a minha posição no mapa',
-'Tap where you want to hit':'Toca onde queres bater','Tap the map to set a target. Tap a hazard to see how far to carry it.':'Toca no mapa para definir o alvo. Toca num obstáculo para ver a distância para o passar.',
+'Tap where you want to hit':'Toca onde queres bater','Tap the map to set a target. Use ⚠ Hazard for water or bunkers.':'Toca no mapa para definir o alvo. Usa ⚠ Obstáculo para água ou bunkers.',
+'⚠ Hazard':'⚠ Obstáculo','Tap the near edge':'Toca no limite mais perto','Tap the far edge':'Toca no limite mais longe','Tap the map where the water or bunker starts.':'Toca no mapa onde começa a água ou o bunker.','Tap where it ends, or skip if you only care about the near side.':'Toca onde acaba, ou salta se só te interessa o lado de cá.','Skip':'Saltar','near {0} {1}, far {2} {3}':'perto {0} {1}, longe {2} {3}','near edge {0} {1}':'limite perto {0} {1}','Carries it: {0} (carry {1} {2})':'Passa: {0} (voo {1} {2})','No club carries it. Lay up short.':'Nenhum taco passa. Faz lay-up antes.','Stays short: {0}':'Fica antes: {0}','✕ Remove hazard':'✕ Remover obstáculo',
 'Short game':'Jogo curto','Chip or pitch':'Chip ou pitch','Too close for a full swing. Pick your wedge by feel.':'Demasiado perto para um swing completo. Escolhe o wedge a sentir.',
 '✕ Back to target':'✕ Voltar ao alvo',
 'Your pick':'A tua escolha','Lay-up':'Lay-up','Shorter than any club':'Mais curto que qualquer taco','Out of range':'Fora de alcance',
 'Auto':'Auto','Carry a hazard':'Passar obstáculo','Approach':'Aproximação','Tee shot / lay-up':'Saída / lay-up',
 'No clubs':'Sem tacos','plays like {0} {1}':'equivale a {0} {1}',
-'Swing about <b>{0}%</b> of a full shot ({1})':'Swing a cerca de <b>{0}%</b> de uma tacada completa ({1})',
+'Swing about <b>{0}%</b> of a full shot ({1})':'Swing a cerca de <b>{0}%</b> de uma tacada completa ({1})','{0}% swing':'{0}% de swing','full swing':'swing completo',
 'crosswind':'vento lateral','slope':'inclinação','stance':'posição','and':'e',
 '↔ Aim {0} {1} {2} for the {3}':'↔ Aponta {0} {1} {2} por causa de {3}','right|aim':'para a direita','left|aim':'para a esquerda',
 'Headwind ':'Vento de frente ','Tailwind ':'Vento de trás ','Cold ':'Frio ','Warm ':'Calor ','Rain ':'Chuva ',
@@ -250,7 +256,7 @@ function defaults(){return{units:'m',lang:((navigator.language||'').toLowerCase(
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs){S=Object.assign(defaults(),j);S.cond=Object.assign(defaults().cond,j.cond||{});if(S.cond.mode==='approach'&&!j.v2)S.cond.mode='auto';S.v2=1;}}catch(e){}
 function save(){try{S.v2=1;localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-const R={elevSrc:null,lay:null,sel:null,me:null,acc:null,target:null,pin:null,manual:false,placePin:false,expanded:false,framed:false};
+const R={hz:null,hzStep:null,elevSrc:null,lay:null,sel:null,me:null,acc:null,target:null,pin:null,manual:false,placePin:false,expanded:false,framed:false};
 
 /* ================= units ================= */
 const U=()=>S.units==='y'?M2Y:1;
@@ -348,7 +354,41 @@ function refreshLines(){
   if(R.lay&&fin){ln.l2=L.polyline([R.lay,fin],{color:'#ffd166',weight:3,dashArray:'7 7',interactive:false}).addTo(map);tagAt(mid(R.lay,fin),tr('leaves {0} {1}',d1(dist(R.lay,fin)),ul()),'tg2','y');}
   else if(R.target&&R.pin){ln.l2=L.polyline([R.target,R.pin],{color:'#ffd166',weight:3,dashArray:'7 7',interactive:false}).addTo(map);tagAt(mid(R.target,R.pin),d1(dist(R.target,R.pin))+' '+ul(),'tg2','y');}
   else rmKey('tg2');
+  if(ln.hz){map.removeLayer(ln.hz);ln.hz=null;}
+  if(R.hz&&R.me){const n=R.hz.near,f=R.hz.far;tagAt(n,d1(dist(R.me,n))+' '+ul(),'hzt1','up');if(f){ln.hz=L.polyline([n,f],{color:'#ef4444',weight:7,opacity:.9,interactive:false}).addTo(map);tagAt(f,d1(dist(R.me,f))+' '+ul(),'hzt2','up');}else rmKey('hzt2');}else{rmKey('hzt1');rmKey('hzt2');}
 }
+function hzInfo(){
+  if(!R.hz||!R.me)return null;
+  const n=R.hz.near,f=R.hz.far;
+  const Dn=dist(R.me,n),rn=calc(Dn,bearing(R.me,n)),o={Dn:Dn,pn:Dn*(1+rn.pct)};
+  if(f){const Df=dist(R.me,f),rf=calc(Df,bearing(R.me,f));o.Df=Df;o.pf=Df*(1+rf.pct);}
+  const need=(o.pf!=null?o.pf:o.pn)+5,act=S.clubs.filter(c=>c.on);
+  o.clear=act.filter(c=>c.carry>=need).sort((a,b)=>a.carry-b.carry)[0]||null;
+  o.short=act.filter(c=>c.carry+c.roll*rn.rollMult<=o.pn-8).sort((a,b)=>b.carry-a.carry)[0]||null;
+  return o;
+}
+function hzCardHTML(){
+  const i=hzInfo();if(!i)return '';const u=ul();
+  let h='<div class="hz"><div>'+tr('⚠ Hazard')+': '+(i.Df!=null?tr('near {0} {1}, far {2} {3}',d1(i.Dn),u,d1(i.Df),u):tr('near edge {0} {1}',d1(i.Dn),u))+'</div>';
+  h+='<div>'+(i.clear?tr('Carries it: {0} (carry {1} {2})',esc(tc(i.clear.name)),d1(i.clear.carry),u):tr('No club carries it. Lay up short.'))+'</div>';
+  if(i.short)h+='<div>'+tr('Stays short: {0}',esc(tc(i.short.name)))+'</div>';
+  return h+'</div>';
+}
+function hzLinkHTML(){return R.hz?'<button class="link" data-act="hzclear">'+tr('✕ Remove hazard')+'</button>':'<button class="link" data-act="hz">'+tr('⚠ Hazard')+'</button>';}
+function hzPromptHTML(){
+  const near=R.hzStep==='near';
+  return '<div class="center"><div class="lbl">'+tr('⚠ Hazard')+'</div><div class="big-msg">'+tr(near?'Tap the near edge':'Tap the far edge')+'</div><div class="sub">'+tr(near?'Tap the map where the water or bunker starts.':'Tap where it ends, or skip if you only care about the near side.')+'</div></div>'+(near?'':'<button class="cta" style="margin-top:12px" data-act="hzskip">'+tr('Skip')+'</button>')+'<div class="center"><button class="link" data-act="hzclear">'+tr('Cancel')+'</button></div>';
+}
+function hzMarker(key,ll,which){
+  mk[key]=L.marker(ll,{icon:dIcon('hzm','',[22,22]),draggable:true,zIndexOffset:850}).addTo(map);
+  mk[key].on('drag',e=>{R.hz[which]=e.target.getLatLng();refresh();});
+}
+function placeHz(ll){
+  if(R.hzStep==='near'){R.hz={near:ll,far:null};hzMarker('hn',ll,'near');R.hzStep='far';}
+  else if(R.hzStep==='far'){R.hz.far=ll;hzMarker('hf',ll,'far');R.hzStep=null;}
+  refresh();
+}
+function clearHz(){R.hz=null;R.hzStep=null;['hn','hf','hzt1','hzt2'].forEach(rmKey);if(ln.hz){map.removeLayer(ln.hz);ln.hz=null;}refresh();}
 function offsetPt(ll,brg,m){const sb=Math.sin(brg*rad),cb=Math.cos(brg*rad);return L.latLng(ll.lat+m*cb/111320,ll.lng+m*sb/(111320*Math.cos(ll.lat*rad)));}
 function startLay(){
   const fin=R.target||R.pin;if(!R.me||!fin)return;
@@ -362,6 +402,7 @@ function startLay(){
 function moveLay(ll){R.lay=ll;R.sel=null;if(mk.ly)mk.ly.setLatLng(ll);refresh();}
 function endLay(){R.lay=null;R.sel=null;rmKey('ly');refresh();}
 map.on('click',e=>{
+  if(R.hzStep){placeHz(e.latlng);return;}
   if(R.lay&&!R.placePin&&!R.mePick){moveLay(e.latlng);return;}
   if(R.placePin){placePinAt(e.latlng);return;}
   if(R.mePick){R.mePick=false;R.manual=true;setMe(e.latlng,5);setGps('ok','Manual position');return;}
@@ -446,7 +487,8 @@ function spread(club){
   }
   return{lat:prior.lat,dep:prior.dep,learned:false,n:0};
 }
-function expDist(r,club){const reach=(r.partial&&r.best&&club.id===r.best.id)?r.plays:club.reach;return Math.max(0,(reach-S.cond.elev)/(1+r.pct));}
+function swingOf(r,club){const w=(MODES[r.mode]||{}).w||0;return (r.plays-w*club.roll*r.rollMult)/club.carry;}
+function expDist(r,club){const sw=swingOf(r,club);const reach=(sw>0&&sw<1)?r.plays:club.reach;return Math.max(0,(reach-S.cond.elev)/(1+r.pct));}
 function swingWord(p){return tr(p>=85?'smooth swing':(p>=70?'three-quarter swing':(p>=50?'half swing':'short, soft swing')));}
 function lateral(r,club){const dC=expDist(r,club),c=S.cond;const wind=-r.cross*dC*0.004,slope=(c.tilt||0)*0.25*club.roll*r.rollMult;const st=((c.stance===-1?1:c.stance===1?-1:0)+(c.ballh===-1?1:c.ballh===1?-1:0))*0.03*dC*(S.lefty?-1:1);return{wind:wind,slope:slope,stance:st,total:wind+slope+st};}
 function activeCtx(){
@@ -479,9 +521,10 @@ function sheetHTML(){
     return '<div class="center"><div class="big-msg">'+tr('Finding your position…')+'</div><div class="sub">'+tr('Allow location access when asked. No signal?')+'</div></div>'+
     '<button class="cta" style="margin-top:12px;background:var(--ink)" data-act="mepick">'+tr('Set my position on the map')+'</button>';
   }
+  if(R.hzStep)return hzPromptHTML();
   const cx=activeCtx();
   if(!cx){
-    let h='<div class="center"><div class="big-msg">'+tr('Tap where you want to hit')+'</div><div class="sub">'+tr('Tap the map to set a target. Tap a hazard to see how far to carry it.')+'</div></div>'+wxChips(null);
+    let h='<div class="center"><div class="big-msg">'+tr('Tap where you want to hit')+'</div><div class="sub">'+tr('Tap the map to set a target. Use ⚠ Hazard for water or bunkers.')+'</div></div>'+hzCardHTML()+wxChips(null)+'<div class="center">'+hzLinkHTML()+'</div>';
     return h;
   }
   const {D,r,club}=cx,unit=ul();
@@ -492,7 +535,7 @@ function sheetHTML(){
     h+='<div class="lbl"'+(!r.best&&!mine?' style="color:var(--bad)"':'')+'>'+tr(mine?'Your pick':(R.lay?'Lay-up':(r.partial?'Shorter than any club':(r.best?MODES[r.mode].n:'Out of range'))))+'</div><button class="clubbtn" data-act="picker">'+esc(tc(club.name))+'<span> ▾</span></button>';
   }else h+='<div class="club">'+tr('No clubs')+'</div>';
   h+='</div><div><div class="dist">'+d1(D)+'<small>'+unit+'</small></div><div class="plays">'+tr('plays like {0} {1}',d1(r.plays),unit)+'</div></div></div>';
-  if(r.partial&&club&&r.best&&club.id===r.best.id){const pc=Math.round(r.swing*100);h+='<div class="aim">'+tr('Swing about <b>{0}%</b> of a full shot ({1})',pc,swingWord(pc))+'</div>';}
+  if(club&&r.best){const sw=swingOf(r,club);if(sw>0.2&&sw<0.95){const pc=Math.round(sw*100);h+='<div class="aim">'+tr('Swing about <b>{0}%</b> of a full shot ({1})',pc,swingWord(pc))+'</div>';}}
   const lt=club?lateral(r,club):null;
   if(lt&&Math.abs(lt.total)>=2){const why=[];if(Math.abs(lt.wind)>=1)why.push(tr('crosswind'));if(Math.abs(lt.slope)>=1)why.push(tr('slope'));if(Math.abs(lt.stance)>=1)why.push(tr('stance'));const wt=why.length>1?why.slice(0,-1).join(', ')+' '+tr('and')+' '+why[why.length-1]:why[0];h+='<div class="aim">'+tr('↔ Aim {0} {1} {2} for the {3}',d1(Math.abs(lt.total)),unit,tr(lt.total<0?'right|aim':'left|aim'),wt)+'</div>';}
   const p=r.parts,bits=[],sg=v=>(v>0?'+':'')+d1(v);
@@ -510,18 +553,19 @@ function sheetHTML(){
     h+='<div class="why">'+(Math.abs(diff)<3?tr('Lands right on target.'):tr(diff<0?'Lands about <b>{0} {1} short</b> of the target.':'Lands about <b>{0} {1} past</b> the target.',d1(Math.abs(diff)),unit))+'</div>';
     if(!r.best&&!mine)h+='<div class="why" style="color:var(--bad);font-weight:700">'+tr('Beyond your bag. Lay up and leave ~{0} {1}.',d1(Math.max(0,r.leave)),unit)+'</div>'+(R.lay?'':'<button class="sec" style="width:100%;margin:8px 0" data-act="lay">'+tr('Lay up: choose my line')+'</button>');
   }
+  h+=hzCardHTML();
   if(R.lay&&(R.target||R.pin))h+='<div class="why">'+tr('Leaves <b>{0} {1}</b> {2}. Tap the map or drag the amber circle to choose your line.',d1(dist(R.lay,R.target||R.pin)),unit,tr(R.pin?'to the pin':'to the target'))+'</div>';
   h+=wxChips(r);
   if(club)h+='<button class="cta" data-act="hit" data-club="'+club.id+'" data-d="'+Math.round(D)+'" data-e="'+Math.round(expDist(r,club))+'" data-a="'+lateral(r,club).total.toFixed(1)+'">'+tr('Hit {0}',esc(tc(club.name)))+'</button>';
-  h+='<div class="center">'+(R.lay?'<button class="link" data-act="unlay">'+tr('✕ Back to target')+'</button>':'<button class="link" data-act="lay">'+tr('Lay up')+'</button>')+'<button class="link" data-act="more">'+tr(R.expanded?'Hide details ▴':'Details ▾')+'</button></div>';
+  h+='<div class="center">'+(R.lay?'<button class="link" data-act="unlay">'+tr('✕ Back to target')+'</button>':'<button class="link" data-act="lay">'+tr('Lay up')+'</button>')+hzLinkHTML()+'<button class="link" data-act="more">'+tr(R.expanded?'Hide details ▴':'Details ▾')+'</button></div>';
   if(R.expanded)h+=detailsHTML(r);
   return h;
 }
 function openPicker(){
   const cx=activeCtx();if(!cx)return;const {r,club}=cx,unit=ul();
   const rows=r.list.slice().sort((a,b)=>b.reach-a.reach).map(c=>{
-    const diff=c.reach-r.plays,sp=spread(c);
-    return '<button class="pick'+(club&&c.id===club.id?' on':'')+'" data-act="selclub" data-id="'+c.id+'"><span><b>'+esc(tc(c.name))+'</b>'+(r.best&&c.id===r.best.id?' <em>'+tr('recommended')+'</em>':'')+'</span><span>'+d1(c.reach)+' '+unit+' <small>('+(diff>=0?'+':'')+d1(diff)+', '+tr('±{0} wide',d1(sp.lat))+')</small></span></button>';
+    const diff=c.reach-r.plays,sw=swingOf(r,c);
+    return '<button class="pick'+(club&&c.id===club.id?' on':'')+'" data-act="selclub" data-id="'+c.id+'"><span><b>'+esc(tc(c.name))+'</b>'+(r.best&&c.id===r.best.id?' <em>'+tr('recommended')+'</em>':'')+'</span><span>'+d1(c.reach)+' '+unit+' <small>('+(diff>=0?'+':'')+d1(diff)+' · '+(sw>0.2&&sw<0.95?tr('{0}% swing',Math.round(sw*100)):tr('full swing'))+')</small></span></button>';
   }).join('');
   $('#mcard').innerHTML='<div class="row" style="justify-content:space-between"><h3>'+tr('Pick a club')+'</h3><button class="x" data-act="mclose">✕</button></div><div class="sub" style="margin:6px 0 10px">'+tr('Reach vs plays-like distance ({0} {1}). The map shows where each one could land.',d1(r.plays),unit)+'</div>'+rows;
   $('#modal').hidden=false;
@@ -722,6 +766,9 @@ function act(a,b){
     case 'elev':R.elevSrc='manual';c.elev=Math.round((c.elev+toM(1)*Number(v))*10)/10;break;
     case 'pinmode':R.placePin=true;break;
     case 'clearpin':R.pin=null;rmKey('p');break;
+    case 'hz':clearHz();R.hzStep='near';refresh();return;
+    case 'hzskip':R.hzStep=null;refresh();return;
+    case 'hzclear':clearHz();return;
     case 'lay':startLay();return;
     case 'unlay':endLay();return;
     case 'cleartarget':if(R.lay)endLay();R.target=null;rmKey('t');R.framed=false;break;
@@ -791,7 +838,7 @@ function applyStatic(){document.documentElement.lang=S.lang==='pt'?'pt-PT':'en';
   $('#locate').setAttribute('aria-label',tr('Centre on me'));setGps(R.g?R.g[0]:'wait',R.g?R.g[1]:'Finding GPS…');}
 applyStatic();renderSheet();startGPS();if(!S.setup)setTimeout(openSetup,400);
 try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
-window.__caddy={doElev,startLay,moveLay,endLay,S,R,calc,recommend,setMe,placeTarget,placePinAt,refresh,spread,activeCtx,ln};
+window.__caddy={placeHz,hzInfo,doElev,startLay,moveLay,endLay,S,R,calc,recommend,setMe,placeTarget,placePinAt,refresh,spread,activeCtx,ln};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&/^https:|^http:\/\/localhost/.test(location.protocol+"//"+location.hostname))navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
