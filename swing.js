@@ -78,12 +78,14 @@ function swAnalyze(F,o){
   const vd=H.map((_,i)=>i===0||i===n-1?0:(H[i+1][1]-H[i-1][1])/Math.max(0.001,(F[i+1].t-F[i-1].t)/1000)/L0);
   let iP=0;for(let i=1;i<n-2;i++)if(vd[i]>vd[iP])iP=i;
   if(vd[iP]<2||sp[iP]<2.5)return{ok:false,why:T('I did not see a full swing. Swing a bit bigger and stay in frame.','Não vi um swing completo. Faz um swing maior e fica no enquadramento.')};
-  let iT=0;for(let i=0;i<=iP;i++)if(H[i][1]<H[iT][1])iT=i;
-  const k0=Math.max(1,Math.min(10,iT));let yA=0;for(let i=0;i<k0;i++)yA+=H[i][1];yA/=k0;
-  let iS=iT;while(iS>0&&H[iS][1]<yA-0.25*L0)iS--;while(iS>0&&sp[iS]>0.3)iS--;
-  let iI=Math.min(n-1,iP+3);for(let i=iP;i<=Math.min(n-1,iP+12);i++){if(H[i][1]>=yA-0.06*L0){iI=i;break;}}
-  let iF=n-1;for(let i=iI;i<n;i++)if(H[i][1]<H[iF][1]||iF===n-1&&i===iI)iF=i;
-  if(iF<=iI)iF=n-1;
+  /* phases: top = peak of the last rise before the fast downswing, address = last calm moment before that rise, impact = hands back at address height, finish = highest hands after impact */
+  let iT=iP;{let best=iP;for(let i=iP-1;i>=0;i--){if(H[i][1]<H[best][1])best=i;else if(H[i][1]-H[best][1]>0.15*L0)break;}iT=best;}
+  let iS=-1;for(let i=iT;i>=0;i--){if(sp[i]<0.6&&H[i][1]>H[iT][1]+0.3*L0){iS=i;break;}}
+  if(iS<0){iS=iT;for(let i=iT;i>=0&&F[iT].t-F[i].t<=2200;i--)if(H[i][1]>H[iS][1])iS=i;}
+  let yA=0;{let c=0;for(let i=Math.max(0,iS-2);i<=iS;i++){yA+=H[i][1];c++;}yA/=c;}
+  let iI=-1;for(let i=Math.max(iT+1,iP-3);i<=Math.min(n-1,iP+10);i++){if(H[i][1]>=yA-0.08*L0){iI=i;break;}}
+  if(iI<0){iI=iP;for(let i=iT+1;i<=Math.min(n-1,iP+8);i++)if(sp[i]>sp[iI])iI=i;}
+  let iF=Math.min(n-1,iI+1);{for(let i=iI;i<n&&F[i].t-F[iI].t<=1500;i++)if(H[i][1]<H[iF][1])iF=i;}
   const fps=(n-1)/((F[n-1].t-F[0].t)/1000),cm=v=>v/L0*50;
   const W=(i,k)=>F[i].w[k];
   const ang=(i,a,b)=>Math.atan2(W(i,b)[2]-W(i,a)[2],W(i,b)[0]-W(i,a)[0])*180/Math.PI;
@@ -166,7 +168,7 @@ function swAnalyze(F,o){
   let pts=0,tot=0;M.forEach(m=>{tot+=m.w;pts+=m.w*(m.st==='good'?1:m.st==='ok'?0.55:0);});
   const score=Math.round(pts/tot*100);
   const tips=M.filter(m=>m.st!=='good').sort((a,b)=>((b.st==='work')-(a.st==='work'))||(b.w-a.w)).slice(0,3);
-  return{ok:true,cls:o.cls,M,score,tips,idx:[iS,iT,iI,iF],fps:Math.round(fps),vis,tempo,back,down,shT,hipT,L0,pauseTop,hpath};
+  return{ok:true,cls:o.cls,M,score,tips,idx:[iS,iT,iI,iF],fps:Math.round(fps),vis,tempo,back,down,shT,hipT,L0,pauseTop,hpath,curve:H.map(h=>h[1]),n};
 }
 
 /* ---------- drawing ---------- */
