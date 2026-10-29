@@ -90,8 +90,17 @@ function swAnalyze(F,o){
   const avgAng=(a,b)=>{let s=0,c=0;for(let i=Math.max(0,iS-3);i<=iS;i++){s+=swWrap(ang(i,a,b)-ang(iS,a,b));c++;}return ang(iS,a,b)+s/c;};
   const sh0=avgAng(11,12),hip0=avgAng(23,24);
   const shRel=i=>swWrap(ang(i,11,12)-sh0),hipRel=i=>swWrap(ang(i,23,24)-hip0);
-  const shT=Math.abs(shRel(iT)),hipT=Math.abs(hipRel(iT)),dirT=Math.sign(shRel(iT))||1;
-  const finRot=-shRel(iF)*dirT;
+  const dirT=Math.sign(shRel(iT))||1;
+  /* rotation from the picture: shoulder width shrinks as you turn (cos law). The 3D depth from the model is weak, so it under-reads turns. */
+  const tor=(()=>{let t=0,c=0;for(let i=Math.max(0,iS-3);i<=iS;i++){t+=d(sh[i],hp[i]);c++;}return t/c;})();
+  const w0=(a,b)=>{let t=0,c=0;for(let i=Math.max(0,iS-3);i<=iS;i++){t+=(F[i].i[b][0]-F[i].i[a][0])*ar;c++;}return t/c;};
+  const fo=o.view==='fo',mx=(a,b)=>{let m=0;for(let i=iS;i<n;i++)m=Math.max(m,Math.abs((F[i].i[b][0]-F[i].i[a][0])*ar));return m;},Ls=fo?w0(11,12):Math.max(mx(11,12),0.65*tor),Lh=fo?w0(23,24):Math.max(mx(23,24),0.40*tor);
+  const swd=(i,a,b)=>(F[i].i[b][0]-F[i].i[a][0])*ar;
+  const r2=(i,a,b,L)=>{if(!(Math.abs(L)>0.02))return 0;const c=Math.max(-1,Math.min(1,swd(i,a,b)/L));if(fo)return Math.acos(c)*180/Math.PI;const q=Math.min(1,Math.abs(c));return q>0.985?90:Math.asin(q)*180/Math.PI;};
+  const rot=(i,a,b,L)=>Math.abs(r2(i,a,b,L)-r2(iS,a,b,L));
+  const ok2=Math.abs(Ls)>0.02&&Math.abs(Lh)>0.02;
+  const shT=Math.min(135,ok2?rot(iT,11,12,Ls):Math.abs(shRel(iT))),hipT=Math.min(90,ok2?rot(iT,23,24,Lh):Math.abs(hipRel(iT)));
+  const finRot=Math.min(150,ok2?rot(iF,11,12,Ls):-shRel(iF)*dirT);
   const mid3=(i,a,b)=>[0,1,2].map(k=>(W(i,a)[k]+W(i,b)[k])/2);
   const tilt=i=>{const a=mid3(i,23,24),b=mid3(i,11,12),v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],l=Math.hypot(v[0],v[1],v[2])||1;return Math.acos(Math.min(1,Math.abs(v[1])/l))*180/Math.PI;};
   const a3=(i,a,b,c)=>{const p=W(i,a),q=W(i,b),r=W(i,c),u=[p[0]-q[0],p[1]-q[1],p[2]-q[2]],v=[r[0]-q[0],r[1]-q[1],r[2]-q[2]],l=(Math.hypot(u[0],u[1],u[2])*Math.hypot(v[0],v[1],v[2]))||1;return Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1]+u[2]*v[2])/l)))*180/Math.PI;};
@@ -191,7 +200,8 @@ function swBtns(){
   const b=$s('swbtns');if(!b)return;const s=SWV.state;let h='';
   if(s==='idle')h='<button class="cta" data-sw="start">'+T('Start camera','Ligar câmara')+'</button>';
   else if(s==='loading')h='<button class="cta" disabled style="opacity:.6">'+T('Loading…','A carregar…')+'</button>';
-  else if(s==='live')h='<button class="cta" data-sw="sess">'+T('Start hands-free session','Começar sessão sem mãos')+'</button><button class="sec" data-sw="rec" style="width:100%;margin-top:8px">'+T('Record just one swing','Gravar só um swing')+'</button><div class="center"><button class="link" data-sw="stopcam">'+T('Turn camera off','Desligar câmara')+'</button></div>';
+  else if(s==='live')h='<button class="cta" data-sw="sess">'+T('Start hands-free session','Começar sessão sem mãos')+'</button><button class="sec" data-sw="rec" style="width:100%;margin-top:8px">'+T('Record just one swing','Gravar só um swing')+'</button><button class="sec" data-sw="game" style="width:100%;margin-top:8px">'+T('Play Tempo Flap (game)','Jogar Tempo Flap (jogo)')+'</button><div class="center"><button class="link" data-sw="stopcam">'+T('Turn camera off','Desligar câmara')+'</button></div>';
+  else if(s==='game')h='<button class="cta" data-sw="endgame" style="background:#c62828">'+T('End game','Terminar jogo')+'</button>';
   else if(s==='auto')h='<button class="cta" data-sw="endsess" style="background:#c62828">'+T('End session','Terminar sessão')+'</button>';
   else if(s==='count')h='<button class="cta" data-sw="cancel" style="background:var(--ink)">'+T('Cancel','Cancelar')+'</button>';
   else if(s==='rec')h='<button class="cta" data-sw="finish" style="background:#c62828">'+T('Stop and analyse','Parar e analisar')+'</button>';
@@ -221,7 +231,7 @@ function swLoop(){
   swDrawLm(cv,swLm(L),null);
   const vis=!!(L&&W&&swVisible(L));
   const rd=$s('swred'),bx=$s('swbox');
-  if(rd){const bad=!vis&&(SWV.state==='live'||SWV.state==='auto'||SWV.state==='rec'||SWV.state==='count');rd.style.opacity=bad?'1':'0';rd.firstChild.style.transform=SWV.cam==='user'?'scaleX(-1)':'none';}
+  if(rd){const bad=!vis&&(SWV.state==='live'||SWV.state==='auto'||SWV.state==='rec'||SWV.state==='count'||SWV.state==='game');rd.style.opacity=bad?'1':'0';rd.firstChild.style.transform=SWV.cam==='user'?'scaleX(-1)':'none';}
   if(bx)bx.style.boxShadow=(vis&&SWV.state!=='loading')?'0 0 0 4px #22c55e':'0 0 0 4px #dc2626';
   if(SWV.state==='live'){swMsg(vis?T('Good. Your whole body is visible. Tap Record when ready.','Bom. O corpo todo está visível. Toca em Gravar quando estiveres pronto.'):T('Step back until your whole body is in the picture.','Afasta-te até o corpo todo aparecer.'),!vis);}
   else if(SWV.state==='rec'){
@@ -233,6 +243,7 @@ function swLoop(){
     if(R_.swung&&now-R_.mv>900)swFinish();
     else if(now-R_.t0>18000)swFinish();
   }
+  else if(SWV.state==='game'){if(typeof swGameFrame==='function')swGameFrame(vis?L:null,W,vis,performance.now());}
   else if(SWV.state==='auto'&&SWV.auto.phase==='armed'){
     const A=SWV.auto,now=performance.now();
     if(L&&W&&vis){
@@ -341,6 +352,8 @@ function swAct(a,b){
   else if(a==='finish'){swFinish();}
   else if(a==='club'){S.swClub=b.dataset.id;save();const cc=$s('swclubs');document.querySelectorAll('[data-sw=club]').forEach(x=>x.classList.toggle('pickon',x.dataset.id===S.swClub));if(SWV.state==='auto'&&SWV.sess){SWV.sess.sinceClub=0;const c=swClub();swSay(T('Club changed to '+(c?c.name:'')+'.','Taco mudado para '+(c?tc(c.name):'')+'.'));}}
   else if(a==='sess'){swSessStart();}
+  else if(a==='game'){if(typeof swGameStart==='function')swGameStart();}
+  else if(a==='endgame'){if(typeof swGameEnd==='function')swGameEnd();}
   else if(a==='endsess'){swSessEnd();}
   else if(a==='voice'){SWV.voice=b.dataset.v==='1';S.swVoice=SWV.voice;save();document.querySelectorAll('[data-sw=voice]').forEach(x=>x.classList.toggle('on',(x.dataset.v==='1')===SWV.voice));if(SWV.voice)swSay(T('Voice on.','Voz ligada.'));else try{speechSynthesis.cancel();}catch(e){}}
   else if(a==='cancel'){SWV.state='live';clearTimeout(SWV.cdT);swBtns();swMsg(T('Cancelled.','Cancelado.'));}
