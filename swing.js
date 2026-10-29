@@ -114,6 +114,8 @@ function swAnalyze(F,o){
   const reachDir=Math.sign(H[iS][0]-hp[iS][0])||1,reach=cm((H[iI][0]-hp[iI][0]-(H[iS][0]-hp[iS][0]))*reachDir);
   const handsTop=(sh[iT][1]-H[iT][1])/L0;
   let bal=0;{const a=Math.max(iF,n-10);let mx=0,my=0,c=0;for(let i=a;i<n;i++){mx+=nose[i][0];my+=nose[i][1];c++;}mx/=c;my/=c;for(let i=a;i<n;i++)bal=Math.max(bal,Math.hypot(nose[i][0]-mx,nose[i][1]-my));bal=cm(bal);}
+  let pauseTop=0;{let a=iT,b=iT;while(a>0&&sp[a]<0.9)a--;while(b<n-1&&sp[b]<0.9)b++;pauseTop=Math.max(0,(F[b].t-F[a].t)/1000);}
+  const j0=Math.max(iS,iI-4),hpath=Math.round(Math.atan2(Math.max(0,H[iI][1]-H[j0][1]),Math.max(0.001,Math.abs(H[iI][0]-H[j0][0])))*180/Math.PI);
   const back=(F[iT].t-F[iS].t)/1000,down=Math.max(0.05,(F[iI].t-F[iT].t)/1000),tempo=back/down;
   let vis=0,vc=0;[11,12,13,14,15,16,23,24,25,26,27,28].forEach(k=>{for(let i=iS;i<=iF;i+=3){vis+=F[i].i[k][2];vc++;}});vis/=vc;
   const rg=(v,g,k)=>v>=g[0]&&v<=g[1]?'good':(v>=k[0]&&v<=k[1]?'ok':'work');
@@ -164,7 +166,7 @@ function swAnalyze(F,o){
   let pts=0,tot=0;M.forEach(m=>{tot+=m.w;pts+=m.w*(m.st==='good'?1:m.st==='ok'?0.55:0);});
   const score=Math.round(pts/tot*100);
   const tips=M.filter(m=>m.st!=='good').sort((a,b)=>((b.st==='work')-(a.st==='work'))||(b.w-a.w)).slice(0,3);
-  return{ok:true,cls:o.cls,M,score,tips,idx:[iS,iT,iI,iF],fps:Math.round(fps),vis,tempo,back,down,shT,hipT,L0};
+  return{ok:true,cls:o.cls,M,score,tips,idx:[iS,iT,iI,iF],fps:Math.round(fps),vis,tempo,back,down,shT,hipT,L0,pauseTop,hpath};
 }
 
 /* ---------- drawing ---------- */
@@ -181,6 +183,11 @@ function swDrawLm(cv,L,opt){
   POSE_LINES.forEach(a=>{const p=P(a[0]),q=P(a[1]),ok=(L[a[0]][2]===undefined||L[a[0]][2]>.4)&&(L[a[1]][2]===undefined||L[a[1]][2]>.4);g.strokeStyle=ok?'#4ade80':'#f87171';g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();});
   const hd=P(0);g.fillStyle='#fff';g.beginPath();g.arc(hd[0],hd[1],opt&&opt.fit?5:7,0,7);g.fill();
   [15,16].forEach(k=>{const p=P(k);g.fillStyle='#fbbf24';g.beginPath();g.arc(p[0],p[1],opt&&opt.fit?4:6,0,7);g.fill();});
+}
+function swGrab(v){
+  const w=100,h=Math.max(20,Math.round(w/(SWV.ar||0.5625)));
+  try{let c=SWV.gc;if(!c||c.width!==w||c.height!==h){c=SWV.gc=document.createElement('canvas');c.width=w;c.height=h;SWV.gx=c.getContext('2d',{willReadFrequently:true});}
+  SWV.gx.drawImage(v,0,0,w,h);return SWV.gx.getImageData(0,0,w,h);}catch(e){return null;}
 }
 function swLm(L){return L?L.map(p=>[p.x,p.y,p.visibility===undefined?1:p.visibility]):null;}
 function swVisible(L){return[11,12,23,24,25,26,27,28].every(k=>L[k].visibility>0.4&&L[k].x>0.02&&L[k].x<0.98&&L[k].y>0.02&&L[k].y<0.98);}
@@ -200,8 +207,9 @@ function swBtns(){
   const b=$s('swbtns');if(!b)return;const s=SWV.state;let h='';
   if(s==='idle')h='<button class="cta" data-sw="start">'+T('Start camera','Ligar câmara')+'</button>';
   else if(s==='loading')h='<button class="cta" disabled style="opacity:.6">'+T('Loading…','A carregar…')+'</button>';
-  else if(s==='live')h='<button class="cta" data-sw="sess">'+T('Start hands-free session','Começar sessão sem mãos')+'</button><button class="sec" data-sw="rec" style="width:100%;margin-top:8px">'+T('Record just one swing','Gravar só um swing')+'</button><button class="sec" data-sw="game" style="width:100%;margin-top:8px">'+T('Play Tempo Flap (game)','Jogar Tempo Flap (jogo)')+'</button><div class="center"><button class="link" data-sw="stopcam">'+T('Turn camera off','Desligar câmara')+'</button></div>';
-  else if(s==='game')h='<button class="cta" data-sw="endgame" style="background:#c62828">'+T('End game','Terminar jogo')+'</button>';
+  else if(s==='live'&&SWV.drill)h='<button class="cta" data-sw="sess">'+T('Start drill','Começar exercício')+'</button><div class="center"><button class="link" data-sw="stopcam">'+T('Turn camera off','Desligar câmara')+'</button></div>';
+  else if(s==='live')h='<button class="cta" data-sw="sess">'+T('Start hands-free session','Começar sessão sem mãos')+'</button><button class="sec" data-sw="rec" style="width:100%;margin-top:8px">'+T('Record just one swing','Gravar só um swing')+'</button><div class="center"><button class="link" data-sw="stopcam">'+T('Turn camera off','Desligar câmara')+'</button></div>';
+  else if(s==='auto'&&SWV.drill)h='<button class="cta" data-sw="endsess" style="background:#c62828">'+T('End drill','Terminar exercício')+'</button>';
   else if(s==='auto')h='<button class="cta" data-sw="endsess" style="background:#c62828">'+T('End session','Terminar sessão')+'</button>';
   else if(s==='count')h='<button class="cta" data-sw="cancel" style="background:var(--ink)">'+T('Cancel','Cancelar')+'</button>';
   else if(s==='rec')h='<button class="cta" data-sw="finish" style="background:#c62828">'+T('Stop and analyse','Parar e analisar')+'</button>';
@@ -231,24 +239,23 @@ function swLoop(){
   swDrawLm(cv,swLm(L),null);
   const vis=!!(L&&W&&swVisible(L));
   const rd=$s('swred'),bx=$s('swbox');
-  if(rd){const bad=!vis&&(SWV.state==='live'||SWV.state==='auto'||SWV.state==='rec'||SWV.state==='count'||SWV.state==='game');rd.style.opacity=bad?'1':'0';rd.firstChild.style.transform=SWV.cam==='user'?'scaleX(-1)':'none';}
+  if(rd){const bad=!vis&&(SWV.state==='live'||SWV.state==='auto'||SWV.state==='rec'||SWV.state==='count');rd.style.opacity=bad?'1':'0';rd.firstChild.style.transform=SWV.cam==='user'?'scaleX(-1)':'none';}
   if(bx)bx.style.boxShadow=(vis&&SWV.state!=='loading')?'0 0 0 4px #22c55e':'0 0 0 4px #dc2626';
   if(SWV.state==='live'){swMsg(vis?T('Good. Your whole body is visible. Tap Record when ready.','Bom. O corpo todo está visível. Toca em Gravar quando estiveres pronto.'):T('Step back until your whole body is in the picture.','Afasta-te até o corpo todo aparecer.'),!vis);}
   else if(SWV.state==='rec'){
     const R_=SWV.rec,now=performance.now();
     if(L&&W){
-      SWV.frames.push({t:now,i:swLm(L),w:W.map(p=>[p.x,p.y,p.z])});
+      SWV.frames.push({t:now,i:swLm(L),w:W.map(p=>[p.x,p.y,p.z]),g:(R_.k=(R_.k||0)+1)%2?swGrab(v):null});
       swSpd(R_,L,now);if(R_.sp>3.5)R_.swung=true;if(R_.sp>0.8)R_.mv=now;
     }
     if(R_.swung&&now-R_.mv>900)swFinish();
     else if(now-R_.t0>18000)swFinish();
   }
-  else if(SWV.state==='game'){if(typeof swGameFrame==='function')swGameFrame(vis?L:null,W,vis,performance.now());}
   else if(SWV.state==='auto'&&SWV.auto.phase==='armed'){
     const A=SWV.auto,now=performance.now();
     if(L&&W&&vis){
       A.vt=0;
-      A.buf.push({t:now,i:swLm(L),w:W.map(p=>[p.x,p.y,p.z])});
+      A.buf.push({t:now,i:swLm(L),w:W.map(p=>[p.x,p.y,p.z]),g:(A.k=(A.k||0)+1)%2?swGrab(v):null});
       while(A.buf.length&&now-A.buf[0].t>(A.swung?9000:4500))A.buf.shift();
       swSpd(A,L,now);if(!A.swung&&A.sp>3.5){A.swung=true;A.t1=now;}if(A.sp>0.8)A.mv=now;
     }else if(!A.swung){
@@ -280,7 +287,8 @@ function swShow(res,quiet){
   h+='<div class="lbl" style="margin:14px 0 6px">'+T('Key positions','Posições-chave')+'</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+names.map((n,i)=>'<div><canvas class="swk" data-k="'+i+'" style="width:100%;height:110px;background:#14532d;border-radius:10px;display:block"></canvas><div class="sub" style="text-align:center;font-size:12px">'+n+'</div></div>').join('')+'</div>';
   if(res.tips.length)h+='<div class="lbl" style="margin:16px 0 6px">'+T('What to work on','No que trabalhar')+'</div>'+res.tips.map((t,i)=>'<div class="aim" style="background:#fff7e6"><b>'+(i+1)+'. '+esc(t.label)+'.</b> '+esc(t.tip)+'</div>').join('');
   else h+='<div class="aim" style="background:#effaf2;color:#166534">'+T('Nice swing. Everything measured is in a good range. Keep repeating it.','Bom swing. Tudo o que medi está numa boa zona. Continua a repetir.')+'</div>';
-  h+='<div class="lbl" style="margin:16px 0 6px">'+T('All measurements','Todas as medições')+'</div>'+res.M.map(m=>'<div class="shot" style="align-items:center"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+col[m.st]+';margin-right:8px"></i><b>'+esc(m.label)+'</b><br><small class="sub">'+esc(m.target)+'</small></span><b>'+esc(m.val)+'</b></div>').join('');
+  if(SWV.view==='fo')h+='<div class="hint">'+T('Hands path into impact: ','Trajetória das mãos no impacto: ')+'<b>'+res.hpath+'°</b> '+T('below horizontal. Steeper means a steeper attack. This is the path of your hands, not of the clubhead, so use it as a guide and compare swings.','abaixo da horizontal. Mais inclinado significa ataque mais descendente. É a trajetória das mãos, não da cabeça do taco, por isso serve de guia para comparar swings.')+'</div>';
+  h+='<details style="margin-top:14px"><summary class="lbl" style="padding:8px 0;cursor:pointer">'+T('All measurements','Todas as medições')+'</summary>'+res.M.map(m=>'<div class="shot" style="align-items:center"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+col[m.st]+';margin-right:8px"></i><b>'+esc(m.label)+'</b><br><small class="sub">'+esc(m.target)+'</small></span><b>'+esc(m.val)+'</b></div>').join('')+'</details>';
   h+='<div class="hint">'+T('These angles come from a phone camera and a body-tracking model, so they are estimates (a few degrees off). Compare swings over time rather than trusting a single number. The club itself is not tracked, only your body and hands.','Estes ângulos vêm da câmara do telemóvel e de um modelo de seguimento do corpo, por isso são estimativas (com alguns graus de erro). Compara swings ao longo do tempo em vez de confiar num só número. O taco não é seguido, só o corpo e as mãos.')+'</div>';
   const hist=(S.swings||[]).filter(x=>x.view===SWV.view&&x.cls===res.cls).slice(-6);
   if(hist.length>1)h+='<div class="lbl" style="margin:14px 0 6px">'+T('Your last swings with this type of club','Os teus últimos swings com este tipo de taco')+'</div><div class="row">'+hist.map(x=>'<span class="cond" style="min-height:36px;display:inline-flex;align-items:center">'+x.score+'</span>').join('')+'</div>';
@@ -299,6 +307,7 @@ function swSessStart(){
   $s('swres').innerHTML='';swBtns();swSessUI();
   swMsg(T('Get into position. I will start listening in a moment.','Posiciona-te. Vou começar a ouvir já.'));
   const c0=swClub(),cn=c0?(S.lang==='pt'?tc(c0.name):c0.name):'';
+  if(SWV.drill&&typeof drIntro==='function'){swSay(drIntro(),()=>setTimeout(swArm,2000));return;}
   swSay(T('Session started with your '+cn+'. Get into position and swing whenever you are ready. If you change club, tap it on the screen.','Sessão iniciada com o teu '+cn+'. Posiciona-te e faz o swing quando quiseres. Se mudares de taco, toca nele no ecrã.'),()=>setTimeout(swArm,2000));
 }
 function swArm(){
@@ -316,8 +325,9 @@ function swAutoDone(){
     else setTimeout(swArm,800);
     return;
   }
+  if(SWV.drill&&typeof drJudge==='function'){S_.fail=0;drJudge(res,S_);return;}
   S_.fail=0;S_.n++;S_.items.push({score:res.score,tempo:res.tempo,M:res.M.map(m=>({key:m.key,label:m.label,st:m.st}))});
-  swShow(res,true);swSessUI();
+  swShow(res,true);swSessUI();if(typeof hxKeep==='function')hxKeep(res,SWV.frames,null);
   const tip=res.tips.find(t=>t.key!==S_.lastTip)||res.tips[0];
   S_.lastTip=tip?tip.key:'';S_.sinceClub=(S_.sinceClub||0)+1;
   const say=T('Swing '+S_.n+'. Score '+res.score+'. ','Swing '+S_.n+'. Nota '+res.score+'. ')+(tip?swTipText(tip):T('Great swing. Keep repeating it.','Excelente swing. Continua a repetir.'));
@@ -333,6 +343,8 @@ function swSessUI(){
 }
 function swSessEnd(){
   const s=SWV.sess;if(!s)return;
+  if(typeof hxSave==='function')hxSave(s);
+  if(SWV.drill&&typeof drEnd==='function'){drEnd(s);return;}
   SWV.state='live';SWV.auto=null;swBtns();
   try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
   if(!s.n){SWV.sess=null;swSessUI();swMsg(T('Session ended.','Sessão terminada.'));return;}
@@ -342,7 +354,7 @@ function swSessEnd(){
   const half=Math.floor(sc.length/2),a1=half?sc.slice(0,half).reduce((a,b)=>a+b,0)/half:avg,a2=sc.slice(half).reduce((a,b)=>a+b,0)/(sc.length-half),trend=sc.length>=4?(a2-a1>=3?T('You improved during the session.','Melhoraste durante a sessão.'):(a1-a2>=3?T('You faded a little. Take a break and reset.','Foste perdendo qualidade. Faz uma pausa.'):'')):'';
   const txt=T('Session finished. '+s.n+' swings, average '+avg+', best '+best+'. ','Sessão terminada. '+s.n+' swings, média '+avg+', melhor '+best+'. ')+(top?T('Main thing to work on: '+lab[top]+'. ','Principal ponto a trabalhar: '+lab[top]+'. '):'')+trend;
   const e=$s('swsess');
-  if(e)e.innerHTML='<div class="aim" style="background:#effaf2;color:#166534"><b>'+T('Session summary','Resumo da sessão')+'</b><br>'+s.n+' swings · '+T('average','média')+' '+avg+' · '+T('best','melhor')+' '+best+(top?'<br>'+T('Main fix: ','Principal ponto: ')+esc(lab[top]):'')+(trend?'<br>'+esc(trend):'')+'</div>';
+  if(e)e.innerHTML='<div class="aim" style="background:#effaf2;color:#166534"><b>'+T('Session summary','Resumo da sessão')+'</b><br>'+s.n+' swings · '+T('average','média')+' '+avg+' · '+T('best','melhor')+' '+best+(top?'<br>'+T('Main fix: ','Principal ponto: ')+esc(lab[top]):'')+(trend?'<br>'+esc(trend):'')+'<br>'+T('Every number and photo is saved in the History tab.','Todos os números e fotos ficam guardados no separador Histórico.')+'</div>';
   swMsg(T('Session finished.','Sessão terminada.'));SWV.sess=null;
   swSay(txt);
 }
@@ -352,8 +364,6 @@ function swAct(a,b){
   else if(a==='finish'){swFinish();}
   else if(a==='club'){S.swClub=b.dataset.id;save();const cc=$s('swclubs');document.querySelectorAll('[data-sw=club]').forEach(x=>x.classList.toggle('pickon',x.dataset.id===S.swClub));if(SWV.state==='auto'&&SWV.sess){SWV.sess.sinceClub=0;const c=swClub();swSay(T('Club changed to '+(c?c.name:'')+'.','Taco mudado para '+(c?tc(c.name):'')+'.'));}}
   else if(a==='sess'){swSessStart();}
-  else if(a==='game'){if(typeof swGameStart==='function')swGameStart();}
-  else if(a==='endgame'){if(typeof swGameEnd==='function')swGameEnd();}
   else if(a==='endsess'){swSessEnd();}
   else if(a==='voice'){SWV.voice=b.dataset.v==='1';S.swVoice=SWV.voice;save();document.querySelectorAll('[data-sw=voice]').forEach(x=>x.classList.toggle('on',(x.dataset.v==='1')===SWV.voice));if(SWV.voice)swSay(T('Voice on.','Voz ligada.'));else try{speechSynthesis.cancel();}catch(e){}}
   else if(a==='cancel'){SWV.state='live';clearTimeout(SWV.cdT);swBtns();swMsg(T('Cancelled.','Cancelado.'));}
@@ -366,14 +376,18 @@ function swClubChips(){
   const cur=swClub();
   return '<div class="chiprow" style="flex-wrap:wrap;margin:0 0 10px">'+S.clubs.filter(c=>c.on).map(c=>'<button class="cond'+(cur&&c.id===cur.id?' pickon':'')+'" data-sw="club" data-id="'+c.id+'">'+esc(tc(c.name))+'</button>').join('')+'</div>';
 }
-function swingHTML(){
-  const seg=(a,cur,items)=>'<div class="seg" style="margin-bottom:10px">'+items.map(x=>'<button class="'+(cur===x[0]?'on':'')+'" data-sw="'+a+'" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
-  return '<div class="hint" style="margin-top:0">'+T('Practise without a ball. Prop your phone about 3 m away at hip height, full body in the picture, in good light. Pick your club, tap Start camera, then Start hands-free session. Swing whenever you like: after each swing you hear your score and one tip, and it keeps listening for the next one.','Treina sem bola. Apoia o telemóvel a cerca de 3 m, à altura da anca, com o corpo todo no ecrã e boa luz. Escolhe o taco, toca em Ligar câmara e depois em Começar sessão sem mãos. Faz o swing quando quiseres: depois de cada swing ouves a nota e uma dica, e a app fica à espera do seguinte.')+'</div>'+
-  '<div class="lbl" style="margin:4px 0 6px">'+T('Which club are you swinging?','Que taco vais usar?')+'</div>'+swClubChips()+
-  seg('view',SWV.view,[['dtl',T('Down the line','Por trás')],['fo',T('Face on','De frente')]])+'<div id="swtip" class="sub" style="margin:-4px 0 10px"></div>'+
-  seg('cam',SWV.cam,[['environment',T('Back camera','Câmara traseira')],['user',T('Front camera','Câmara frontal')]])+seg('voice',SWV.voice?'1':'0',[['1',T('Voice on','Voz ligada')],['0',T('Voice off','Voz desligada')]])+
-  '<div id="swbox" style="display:none;position:relative;background:#000;border-radius:14px;overflow:hidden;max-height:62vh;margin:0 auto"><video id="swv" playsinline muted autoplay style="width:100%;height:100%;object-fit:contain;display:block"></video><canvas id="swc" style="position:absolute;inset:0;width:100%;height:100%"></canvas><div id="swred" style="position:absolute;inset:0;background:rgba(220,38,38,.42);opacity:0;transition:opacity .15s;pointer-events:none;display:grid;place-items:center"><div style="background:#fff;color:#b91c1c;font-weight:800;padding:8px 14px;border-radius:999px">'+T('Step back: I cannot see all of you','Afasta-te: não te vejo todo')+'</div></div></div>'+
+function swSeg(a,cur,items){return '<div class="seg" style="margin-bottom:10px">'+items.map(x=>'<button class="'+(cur===x[0]?'on':'')+'" data-sw="'+a+'" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';}
+function swCamBox(){
+  return '<div id="swbox" style="display:none;position:relative;background:#000;border-radius:14px;overflow:hidden;max-height:62vh;margin:0 auto"><video id="swv" playsinline muted autoplay style="width:100%;height:100%;object-fit:contain;display:block"></video><canvas id="swc" style="position:absolute;inset:0;width:100%;height:100%"></canvas><div id="swred" style="position:absolute;inset:0;background:rgba(220,38,38,.42);opacity:0;transition:opacity .15s;pointer-events:none;display:grid;place-items:center"><div style="background:#fff;color:#b91c1c;font-weight:800;padding:8px 14px;border-radius:999px">'+T('Step back: I cannot see all of you','Afasta-te: não te vejo todo')+'</div></div></div>'+
   '<div id="swmsg" class="aim" style="margin:8px 0;background:var(--soft);color:var(--ink)"></div><div id="swsess"></div><div id="swbtns"></div><div id="swres"></div>';
+}
+function swingHTML(){
+  return '<div class="hint" style="margin-top:0">'+T('Prop your phone about 3 m away at hip height with your whole body in view and good light. Pick your club, tap Start camera, then Start hands-free session. After each swing you hear your score and one tip.','Apoia o telemóvel a cerca de 3 m, à altura da anca, com o corpo todo visível e boa luz. Escolhe o taco, toca em Ligar câmara e depois em Começar sessão sem mãos. Depois de cada swing ouves a nota e uma dica.')+'</div>'+
+  '<div class="lbl" style="margin:4px 0 6px">'+T('Which club are you swinging?','Que taco vais usar?')+'</div>'+swClubChips()+
+  '<details style="margin:0 0 10px"><summary class="lbl" style="padding:8px 0;cursor:pointer">'+T('Setup: view, camera, voice','Definições: vista, câmara, voz')+'</summary>'+
+  swSeg('view',SWV.view,[['dtl',T('Down the line','Por trás')],['fo',T('Face on','De frente')]])+'<div id="swtip" class="sub" style="margin:-4px 0 10px"></div>'+
+  swSeg('cam',SWV.cam,[['environment',T('Back camera','Câmara traseira')],['user',T('Front camera','Câmara frontal')]])+swSeg('voice',SWV.voice?'1':'0',[['1',T('Voice on','Voz ligada')],['0',T('Voice off','Voz desligada')]])+'</details>'+
+  swCamBox();
 }
 function swingMount(){if(S.swVoice===false)SWV.voice=false;if(!S.swClub){const c=swClub();if(c)S.swClub=c.id;}swView();swSessUI();swBtns();swMsg(T('Tap Start to turn on the camera.','Toca em Começar para ligar a câmara.'));}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sw]');if(b)swAct(b.dataset.sw,b);});
