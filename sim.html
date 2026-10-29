@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15803d">
+<title>Caddy Sim – test holes</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--ink:#0f1f16;--mut:#34443a;--line:#e4ebe6;--soft:#f2f6f3;--acc:#15803d}
+html,body{margin:0;height:100%;font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fff}
+button{font:inherit;color:inherit;cursor:pointer}
+#app{display:flex;flex-direction:column;height:100dvh}
+#top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--ink);color:#fff;font-weight:700;font-size:15px}
+#top a{color:#9fe3b4;text-decoration:none;font-weight:700}
+#cv{flex:1;min-height:0;width:100%;display:block;background:#2f7d3a;touch-action:none}
+#ctl{padding:8px 12px calc(env(safe-area-inset-bottom) + 10px);background:#fff;box-shadow:0 -3px 14px rgba(0,0,0,.2)}
+#msg{font-size:15px;color:var(--mut);min-height:40px;margin-bottom:6px}
+#msg b{color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.chip{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:0 14px;min-height:48px;font-weight:700;font-size:15px}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.rec{border-color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.row{display:flex;align-items:center;gap:10px;margin:4px 0}
+.row label{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--mut);min-width:64px}
+.row input[type=range]{flex:1;height:34px}
+.row span{min-width:58px;text-align:right;font-weight:800}
+.cta{width:100%;border:0;background:var(--acc);color:#fff;font-weight:800;font-size:18px;padding:14px;border-radius:16px;margin-top:6px}
+.sec{border:1.5px solid var(--line);background:#fff;border-radius:12px;min-height:48px;padding:0 14px;font-weight:700}
+.setup{padding:16px;overflow-y:auto}
+.setup h2{margin:6px 0}
+textarea,input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:16px;font-family:inherit}
+.hint{background:var(--soft);border-radius:12px;padding:10px;font-size:14px;color:var(--mut);margin:10px 0}
+.res{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.wind{display:flex;gap:10px}.wind>div{flex:1}
+.wind label{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--mut)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><span id="ttl">Caddy Sim</span><a href="./">← Back to Caddy</a></div>
+  <div id="setup" class="setup"></div>
+  <canvas id="cv" hidden></canvas>
+  <div id="ctl" hidden></div>
+</div>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const KEY='caddy.v1',M2Y=1.09361,KMH_MPH=1.609;
+let S={units:'m',clubs:[],miss:{}};
+try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.clubs)S=j;}catch(e){}
+if(!S.clubs||!S.clubs.length){S.clubs=[['Driver',200,20],['3 Wood',180,15],['5 Wood',168,12],['4 Hybrid',160,10],['5 Iron',150,8],['6 Iron',140,7],['7 Iron',130,6],['8 Iron',120,5],['9 Iron',110,4],['Pitching Wedge',100,3],['Sand Wedge',72,2]].map((c,i)=>({id:'c'+i,name:c[0],carry:c[1],roll:c[2],on:true}));S.miss={};}
+const clubs=S.clubs.filter(c=>c.on).sort((a,b)=>b.carry-a.carry);
+const U=S.units==='y'?M2Y:1,UL=S.units==='y'?'yd':'m',d1=m=>Math.round(m*U);
+function spread(c){const pl=Math.max(2,c.carry*.08),pd=Math.max(2,c.carry*.07),m=(S.miss||{})[c.id];
+  if(m&&m.length>=5){const rms=a=>Math.sqrt(a.reduce((s,x)=>s+x*x,0)/a.length),n=m.length,k=3;return{lat:Math.max(2,(n*1.28*rms(m.map(x=>x.lat))+k*pl)/(n+k)),dep:Math.max(2,(n*1.28*rms(m.map(x=>x.de))+k*pd)/(n+k))};}
+  return{lat:pl,dep:pd};}
+function gauss(){let u=0,v=0;while(!u)u=Math.random();v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const rad=Math.PI/180;
+let H=null,rd=null,sel=null,aim=0,pow=100,wind={head:0,cross:0},busy=false;
+const GR=14,FW=18;
+
+/* ---------- setup ---------- */
+function showSetup(){
+  $('#cv').hidden=true;$('#ctl').hidden=true;const s=$('#setup');s.hidden=false;
+  const res=rd&&rd.done.length?'<h2>Last round</h2>'+rd.done.map((h,i)=>'<div class="res"><span>Hole '+(i+1)+' · '+d1(h.len)+' '+UL+' par '+h.par+'</span><b>'+h.strokes+' ('+(h.strokes-h.par>0?'+':'')+(h.strokes-h.par)+')</b></div>').join('')+'<div class="res"><b>Total</b><b>'+rd.done.reduce((a,h)=>a+h.strokes,0)+' ('+((t=>t>0?'+'+t:t)(rd.done.reduce((a,h)=>a+h.strokes-h.par,0)))+')</b></div>':'';
+  s.innerHTML='<h2>Test holes</h2><div class="hint">Enter the hole lengths in '+(S.units==='y'?'yards':'metres')+', separated by commas or new lines. Par is set from the length. The sim uses your bag and your learned landing zones.</div><textarea id="lens" rows="4">'+(window.__lens||'380, 165, 510, 320, 150')+'</textarea>'+
+  '<div class="wind" style="margin-top:12px"><div><label>Headwind (km/h, − = tail)</label><input type="number" id="wh" value="0"></div><div><label>Crosswind from right (km/h)</label><input type="number" id="wc" value="0"></div></div>'+
+  '<button class="cta" id="go">Start</button>'+res;
+  $('#go').onclick=()=>{
+    const arr=$('#lens').value.split(/[\s,;]+/).map(Number).filter(x=>x>20&&x<900);if(!arr.length)return;
+    window.__lens=$('#lens').value;wind={head:Number($('#wh').value)||0,cross:Number($('#wc').value)||0};
+    rd={holes:arr.map(v=>{const m=v/U;return{len:m,par:m<=230?3:(m<=430?4:5)};}),i:0,done:[]};startHole();};
+}
+function startHole(){
+  const h=rd.holes[rd.i];H={len:h.len,par:h.par,ball:{x:0,y:0},prev:{x:0,y:0},strokes:0,trail:[{x:0,y:0}],onGreen:false,lie:'tee',last:null};
+  aim=0;pow=100;busy=false;sel=best().id;pow=autoPow(clubs.find(k=>k.id===sel));$('#setup').hidden=true;$('#cv').hidden=false;$('#ctl').hidden=false;
+  setMsg('Hole '+(rd.i+1)+' of '+rd.holes.length+': <b>'+d1(h.len)+' '+UL+'</b>, par '+h.par+'.');draw();ctl();
+}
+function plays(D){const mph=wind.head/KMH_MPH;return D*(1+(mph>=0?mph*.01:mph*.005));}
+function base(){return Math.atan2(-H.ball.x,H.len-H.ball.y);}
+function autoPow(c){const D=Math.hypot(H.ball.x,H.len-H.ball.y),P=plays(D),w=H.lie==='rough'?.2:.35,full=c.carry+w*c.roll;return Math.round(Math.max(20,Math.min(100,P/full*100))/5)*5;}
+function best(){
+  const D=Math.hypot(H.ball.x,H.len-H.ball.y),P=plays(D);let b=null,bs=1e9;
+  clubs.forEach(c=>{const r=c.carry+(H.lie==='rough'?.2:.35)*c.roll,d=r-P,s=d>=0?d:-d*1.5;if(s<bs){bs=s;b=c;}});
+  return b||clubs[0];
+}
+/* ---------- controls ---------- */
+function ctl(){
+  const c=ctl_el();const D=Math.hypot(H.ball.x,H.len-H.ball.y),rec=best();
+  c.innerHTML='<div id="msg">'+(c._m||'')+'</div>'+'<div class="chips">'+clubs.map(k=>'<button class="chip'+(k.id===sel?' on':'')+(k.id===rec.id?' rec':'')+'" data-id="'+k.id+'">'+k.name+'</button>').join('')+'</div>'+
+  '<div class="row"><label>Aim</label><input type="range" id="aim" min="-12" max="12" step="0.5" value="'+aim+'"><span id="av">'+(aim>0?'+':'')+aim+'°</span></div>'+
+  '<div class="row"><label>Power</label><input type="range" id="pw" min="20" max="100" step="5" value="'+pow+'"><span id="pv">'+pow+'%</span></div>'+
+  '<button class="cta" id="swing">Swing</button>';
+  c.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{sel=b.dataset.id;pow=autoPow(clubs.find(k=>k.id===sel));ctl();draw();});
+  $('#aim').oninput=e=>{aim=Number(e.target.value);$('#av').textContent=(aim>0?'+':'')+aim+'°';draw();};
+  $('#pw').oninput=e=>{pow=Number(e.target.value);$('#pv').textContent=pow+'%';draw();};
+  $('#swing').onclick=swing;
+}
+function ctl_el(){const c=$('#ctl');if(!c._m)c._m='';return c;}
+function setMsg(t){const c=$('#ctl');c._m=t;const m=$('#msg');if(m)m.innerHTML=t;}
+/* ---------- physics ---------- */
+function swing(){
+  if(busy)return;const c=clubs.find(k=>k.id===sel);if(!c)return;
+  H.prev={x:H.ball.x,y:H.ball.y};H.strokes++;
+  const p=pow/100,sp=spread(c),mph=wind.head/KMH_MPH,cm=wind.cross/KMH_MPH;
+  const pct=mph>=0?mph*.01:mph*.005,roughMul=H.lie==='rough'?.92:1;
+  const carry0=c.carry*p*roughMul/(1+pct);
+  const carry=Math.max(3,carry0+gauss()*sp.dep/1.28*Math.max(.5,p));
+  const lat=gauss()*sp.lat/1.28*Math.max(.5,p)-cm*carry0*.004;
+  const a=base()+aim*rad,dx=Math.sin(a),dy=Math.cos(a),px=Math.cos(a),py=-Math.sin(a);
+  let x=H.ball.x+dx*carry+px*lat,y=H.ball.y+dy*carry+py*lat;
+  const dg=Math.hypot(x,H.len-y),onG=dg<=GR,inFW=Math.abs(x)<=FW;
+  let rm=onG?.35:(inFW?1:.4);if(H.lie==='rough'&&false)rm=.4;
+  const roll=c.roll*p*rm;x+=dx*roll;y+=dy*roll;
+  const nl={x,y};let note='';
+  if(Math.abs(x)>70||y<-25||y>H.len+80){H.strokes++;H.ball={x:H.prev.x,y:H.prev.y};H.trail.push({x,y,oob:true});H.trail.push({x:H.ball.x,y:H.ball.y});
+    note='Out of bounds. +1 stroke, play again from the same spot.';animate(H.prev,nl,()=>{finish(note);});return;}
+  H.last={from:H.prev,to:nl,carry:Math.hypot(x-H.prev.x,y-H.prev.y)};
+  H.ball=nl;H.trail.push(nl);
+  H.lie=Math.hypot(x,H.len-y)<=GR?'green':(Math.abs(x)<=FW?'fairway':'rough');
+  animate(H.prev,nl,()=>finish(''));
+}
+function finish(note){
+  busy=false;const D=Math.hypot(H.ball.x,H.len-H.ball.y);
+  if(H.lie==='green'||(D<=GR)){
+    const d=D;let putts=1;const p1=Math.max(.04,.95-d*.085);
+    if(Math.random()>p1){putts=2;if(d>10&&Math.random()<Math.min(.6,(d-10)*.04))putts=3;if(d>25&&Math.random()<.2)putts=4;}
+    H.strokes+=putts;endHole('On the green, <b>'+d1(d)+' '+UL+'</b> from the pin: '+putts+' putt'+(putts>1?'s':'')+'.');return;}
+  if(H.strokes>=15){endHole('Pick up. Max strokes.');return;}
+  sel=best().id;pow=autoPow(clubs.find(k=>k.id===sel));
+  setMsg((note?note+' ':'')+'<b>'+d1(D)+' '+UL+'</b> to the pin, in the '+(H.lie==='rough'?'rough':'fairway')+'. Stroke '+(H.strokes+1)+'. '+(H.last?'Last shot flew '+d1(H.last.carry)+' '+UL+'.':''));ctl();draw();
+}
+function endHole(txt){
+  rd.done.push({len:H.len,par:H.par,strokes:H.strokes});draw();
+  const diff=H.strokes-H.par,nm=diff<=-2?'Eagle':diff===-1?'Birdie':diff===0?'Par':diff===1?'Bogey':diff===2?'Double bogey':'+'+diff;
+  const last=rd.i>=rd.holes.length-1,c=$('#ctl');
+  c.innerHTML='<div id="msg">'+txt+'<br><b>'+H.strokes+' strokes: '+nm+'.</b></div><button class="cta" id="nx">'+(last?'Finish round':'Next hole')+'</button>';
+  $('#nx').onclick=()=>{if(last){showSetup();}else{rd.i++;startHole();}};
+}
+/* ---------- drawing ---------- */
+const cv=$('#cv'),g=cv.getContext('2d');let anim=null;
+function view(){
+  const w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==w*devicePixelRatio){cv.width=w*devicePixelRatio;cv.height=h*devicePixelRatio;}
+  const b=anim||H.ball,y0=b.y-30,y1=Math.max(H.len+25,b.y+70),sc=Math.min(h/(y1-y0),w/120*1.0);
+  return{w,h,sc,y0,cx:w/2};
+}
+function P(v,x,y){return[v.cx+x*v.sc,v.h-(y-v.y0)*v.sc];}
+function draw(){
+  if(!H||cv.hidden)return;const v=view();g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  g.fillStyle='#3a8a43';g.fillRect(0,0,v.w,v.h);
+  let a=P(v,-FW,-50),b=P(v,FW,H.len+60);g.fillStyle='#4fb05a';g.fillRect(a[0],b[1],b[0]-a[0],a[1]-b[1]);
+  g.fillStyle='#6cc377';let t=P(v,-6,3);g.fillRect(t[0],t[1]-3*v.sc,12*v.sc,6*v.sc);
+  let gp=P(v,0,H.len);g.beginPath();g.arc(gp[0],gp[1],GR*v.sc,0,7);g.fillStyle='#86d98f';g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+  g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(gp[0],gp[1]);g.lineTo(gp[0],gp[1]-26);g.stroke();g.fillStyle='#ef4444';g.beginPath();g.moveTo(gp[0],gp[1]-26);g.lineTo(gp[0]+14,gp[1]-21);g.lineTo(gp[0],gp[1]-16);g.fill();
+  // trail
+  g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=2;g.setLineDash([6,5]);g.beginPath();H.trail.forEach((p,i)=>{const q=P(v,p.x,p.y);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.stroke();g.setLineDash([]);
+  const c=clubs.find(k=>k.id===sel);
+  if(c&&!busy&&!$('#nx')){const sp=spread(c),p=pow/100,ar=base()+aim*rad,roughMul=H.lie==='rough'?.92:1,cm=wind.cross/KMH_MPH,mph=wind.head/KMH_MPH,pct=mph>=0?mph*.01:mph*.005;
+    const dc=c.carry*p*roughMul/(1+pct)+c.roll*p*.7,drift=-cm*c.carry*p*.004;
+    g.beginPath();for(let i=0;i<=36;i++){const tt=i/36*2*Math.PI,al=dc+sp.dep*p*Math.cos(tt),ac=drift+sp.lat*p*Math.sin(tt);
+      const X=H.ball.x+al*Math.sin(ar)+ac*Math.cos(ar),Y=H.ball.y+al*Math.cos(ar)-ac*Math.sin(ar),q=P(v,X,Y);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);}
+    g.fillStyle='rgba(255,255,255,.3)';g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+    const e=P(v,H.ball.x+dc*Math.sin(ar),H.ball.y+dc*Math.cos(ar)),s=P(v,H.ball.x,H.ball.y);g.strokeStyle='rgba(255,230,120,.9)';g.beginPath();g.moveTo(s[0],s[1]);g.lineTo(e[0],e[1]);g.stroke();}
+  const bp=P(v,(anim||H.ball).x,(anim||H.ball).y);g.beginPath();g.arc(bp[0],bp[1],5,0,7);g.fillStyle='#fff';g.fill();g.strokeStyle='#222';g.lineWidth=1.5;g.stroke();
+  g.fillStyle='#fff';g.font='700 13px sans-serif';g.textAlign='left';g.fillText('Hole '+(rd.i+1)+' · par '+H.par+' · strokes '+H.strokes+(wind.head||wind.cross?' · wind '+wind.head+'/'+wind.cross+' km/h':''),10,20);
+}
+function animate(from,to,cb){
+  busy=true;const t0=performance.now(),dur=900;
+  (function step(now){const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);anim={x:from.x+(to.x-from.x)*e,y:from.y+(to.y-from.y)*e};draw();
+    if(k<1)requestAnimationFrame(step);else{anim=null;busy=false;cb();}})(t0);
+}
+window.addEventListener('resize',draw);
+showSetup();
+})();
+</script>
+</body>
+</html>
