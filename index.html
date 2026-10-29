@@ -122,6 +122,17 @@ input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc)}
 .hz div:first-child{margin-top:0}
 .hzh{display:flex;justify-content:space-between;align-items:center}
 .hzx{border:0;background:none;font-size:16px;font-weight:800;min-width:48px;min-height:48px;margin:-14px -8px -14px 0;color:#8a1c1c}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hcard{border:2px solid var(--line);background:#fff;border-radius:16px;padding:8px;text-align:left;position:relative}
+.hcard.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc);background:#f3fbf5}
+.hth{width:100%;height:110px;border-radius:10px;display:block}
+.hn{font-weight:800;font-size:15px;margin-top:6px;line-height:1.15}
+.hs{font-size:12px;color:var(--mut);line-height:1.2;min-height:15px}
+.hm{font-size:13px;color:var(--ink);font-weight:700;margin-top:3px;display:flex;justify-content:space-between;align-items:center}
+.lv{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px}
+.lv.e{background:#dcfce7;color:#166534}.lv.t{background:#fee2e2;color:#991b1b}
+.tick{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.vhtitle{font-size:21px;font-weight:800;line-height:1.15;letter-spacing:-.3px}
 .ly{width:30px;height:30px;border-radius:50%;background:rgba(255,193,7,.35);border:3px solid #ffc107;box-shadow:0 1px 8px rgba(0,0,0,.6);display:grid;place-items:center}
 .ly::after{content:"";width:10px;height:10px;border-radius:50%;background:#ffc107;border:2px solid #fff}
 </style>
@@ -166,7 +177,7 @@ const PT={
 "📍 I'm at my ball":'📍 Estou na minha bola','Cancel':'Cancelar',
 'Finding your position…':'A procurar a tua posição…','Allow location access when asked. No signal?':'Permite o acesso à localização quando pedido. Sem sinal?','Set my position on the map':'Definir a minha posição no mapa',
 'Tap where you want to hit':'Toca onde queres bater','Tap where you want to hit, or set the ⛳ pin. Use ⚠ Hazard for water or bunkers.':'Toca onde queres bater, ou define a ⛳ bandeira. Usa ⚠ Obstáculo para água ou bunkers.',
-'⚠ Hazard':'⚠ Obstáculo','Tap the near edge':'Toca no limite mais perto','Tap the far edge':'Toca no limite mais longe','Tap the map where the water or bunker starts.':'Toca no mapa onde começa a água ou o bunker.','Tap where it ends, or skip if you only care about the near side.':'Toca onde acaba, ou salta se só te interessa o lado de cá.','Skip':'Saltar','Free practice':'Treino livre','Play a hole':'Jogar um buraco','Enter hole lengths {0}, separated by commas. Hit real shots, enter the carry, and the app moves your ball down the hole.':'Indica os comprimentos dos buracos {0}, separados por vírgulas. Bate tacadas reais, indica o voo e a app move a bola pelo buraco.','Round complete':'Jogo terminado','Hole {0} of {1} · par {2}':'Buraco {0} de {1} · par {2}','{0} strokes ({1})':'{0} pancadas ({1})','Pick up. Too many strokes.':'Apanha a bola. Demasiadas pancadas.','On the green, {0} {1} from the pin. Putts: {2}.':'No green, a {0} {1} da bandeira. Putts: {2}.','To the pin':'Até à bandeira','Stroke {0}':'Tacada {0}','{0} {1} left of the line':'{0} {1} à esquerda da linha','{0} {1} right of the line':'{0} {1} à direita da linha','Last shot: {0} {1}':'Última tacada: {0} {1}','Caddy suggests {0}':'O caddy sugere {0}','Play this shot':'Jogar esta tacada','Water':'Água','Famous holes':'Buracos famosos','Pick famous holes to play, or type your own hole lengths {0}. Hit real shots, enter the carry, and the app moves your ball down the hole.':'Escolhe buracos famosos para jogar, ou escreve os teus comprimentos {0}. Bate tacadas reais, indica o voo e a app move a bola pelo buraco.','Layouts are simplified, not exact.':'Os desenhos são simplificados, não exatos.','Select all':'Todos','Clear':'Limpar','Or your own lengths':'Ou os teus comprimentos','Out of bounds. +1 stroke, play again from the same spot.':'Fora de limites. +1 pancada, joga outra vez do mesmo sítio.','{0} carries it':'{0} passa','Lie: bunker':'Lie: bunker','Lie: rough':'Lie: rough','Lie: fairway':'Lie: fairway','In the bunker.':'No bunker.','Splash! In the water. +1 stroke, play again from the same spot.':'Splash! Na água. +1 pancada, joga outra vez do mesmo sítio.','In the trees. +1 stroke, play again from the same spot.':'Nas árvores. +1 pancada, joga outra vez do mesmo sítio.','End game':'Terminar jogo','Tap one end of the hazard':'Toca numa ponta do obstáculo','Tap the other end':'Toca na outra ponta','Tap where it ends. That makes a circle.':'Toca onde acaba. Fica um círculo.','Tap the side to make an oval':'Toca no lado para fazer um oval','Tap how wide it is, or press Done to keep a circle.':'Toca na largura, ou carrega em Feito para manter o círculo.','{0} to {1} {2}':'{0} a {1} {2}','⛳ Pin':'⛳ Bandeira','✕ Pin':'✕ Bandeira','Tap the pin':'Toca na bandeira','Tap the map where the flag is.':'Toca no mapa onde está a bandeira.','near {0} {1}, far {2} {3}':'perto {0} {1}, longe {2} {3}','near edge {0} {1}':'limite perto {0} {1}','Carries it: {0} (carry {1} {2})':'Passa: {0} (voo {1} {2})','No club carries it. Lay up short.':'Nenhum taco passa. Faz lay-up antes.','Stays short: {0}':'Fica antes: {0}','✕ Remove hazard':'✕ Remover obstáculo',
+'⚠ Hazard':'⚠ Obstáculo','Tap the near edge':'Toca no limite mais perto','Tap the far edge':'Toca no limite mais longe','Tap the map where the water or bunker starts.':'Toca no mapa onde começa a água ou o bunker.','Tap where it ends, or skip if you only care about the near side.':'Toca onde acaba, ou salta se só te interessa o lado de cá.','Skip':'Saltar','Free practice':'Treino livre','Play a hole':'Jogar um buraco','Enter hole lengths {0}, separated by commas. Hit real shots, enter the carry, and the app moves your ball down the hole.':'Indica os comprimentos dos buracos {0}, separados por vírgulas. Bate tacadas reais, indica o voo e a app move a bola pelo buraco.','Round complete':'Jogo terminado','Hole {0} of {1} · par {2}':'Buraco {0} de {1} · par {2}','{0} strokes ({1})':'{0} pancadas ({1})','Pick up. Too many strokes.':'Apanha a bola. Demasiadas pancadas.','On the green, {0} {1} from the pin. Putts: {2}.':'No green, a {0} {1} da bandeira. Putts: {2}.','To the pin':'Até à bandeira','Stroke {0}':'Tacada {0}','{0} {1} left of the line':'{0} {1} à esquerda da linha','{0} {1} right of the line':'{0} {1} à direita da linha','Last shot: {0} {1}':'Última tacada: {0} {1}','Caddy suggests {0}':'O caddy sugere {0}','Play this shot':'Jogar esta tacada','Water':'Água','Famous holes':'Buracos famosos','Easy holes':'Buracos fáceis','All easy':'Todos fáceis','All famous':'Todos famosos','Easy':'Fácil','Tough':'Difícil','Pick holes to play. Hit real shots, enter the carry, and the app moves your ball down the hole.':'Escolhe buracos para jogar. Bate tacadas reais, indica o voo e a app move a bola pelo buraco.','Play {0} holes':'Jogar {0} buracos','Hole in one!':'Buraco numa!','Double bogey':'Duplo bogey','Triple bogey or worse':'Triplo bogey ou pior','Pick famous holes to play, or type your own hole lengths {0}. Hit real shots, enter the carry, and the app moves your ball down the hole.':'Escolhe buracos famosos para jogar, ou escreve os teus comprimentos {0}. Bate tacadas reais, indica o voo e a app move a bola pelo buraco.','Layouts are simplified, not exact.':'Os desenhos são simplificados, não exatos.','Select all':'Todos','Clear':'Limpar','Or your own lengths':'Ou os teus comprimentos','Out of bounds. +1 stroke, play again from the same spot.':'Fora de limites. +1 pancada, joga outra vez do mesmo sítio.','{0} carries it':'{0} passa','Lie: bunker':'Lie: bunker','Lie: rough':'Lie: rough','Lie: fairway':'Lie: fairway','In the bunker.':'No bunker.','Splash! In the water. +1 stroke, play again from the same spot.':'Splash! Na água. +1 pancada, joga outra vez do mesmo sítio.','In the trees. +1 stroke, play again from the same spot.':'Nas árvores. +1 pancada, joga outra vez do mesmo sítio.','End game':'Terminar jogo','Tap one end of the hazard':'Toca numa ponta do obstáculo','Tap the other end':'Toca na outra ponta','Tap where it ends. That makes a circle.':'Toca onde acaba. Fica um círculo.','Tap the side to make an oval':'Toca no lado para fazer um oval','Tap how wide it is, or press Done to keep a circle.':'Toca na largura, ou carrega em Feito para manter o círculo.','{0} to {1} {2}':'{0} a {1} {2}','⛳ Pin':'⛳ Bandeira','✕ Pin':'✕ Bandeira','Tap the pin':'Toca na bandeira','Tap the map where the flag is.':'Toca no mapa onde está a bandeira.','near {0} {1}, far {2} {3}':'perto {0} {1}, longe {2} {3}','near edge {0} {1}':'limite perto {0} {1}','Carries it: {0} (carry {1} {2})':'Passa: {0} (voo {1} {2})','No club carries it. Lay up short.':'Nenhum taco passa. Faz lay-up antes.','Stays short: {0}':'Fica antes: {0}','✕ Remove hazard':'✕ Remover obstáculo',
 'Short game':'Jogo curto','Chip or pitch':'Chip ou pitch','Too close for a full swing. Pick your wedge by feel.':'Demasiado perto para um swing completo. Escolhe o wedge a sentir.',
 '✕ Back to target':'✕ Voltar ao alvo',
 'Your pick':'A tua escolha','Lay-up':'Lay-up','Shorter than any club':'Mais curto que qualquer taco','Out of range':'Fora de alcance',
@@ -648,7 +659,7 @@ function openPanel(t){
   ptab=t||ptab;$('#panel').hidden=false;
   document.querySelectorAll('#ptabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===ptab));
   $('#pbody').innerHTML=ptab==='round'?roundHTML():ptab==='range'?rangeHTML():ptab==='bag'?bagHTML():settingsHTML();
-  if(ptab==='range'&&R.rmode==='hole')drawVh();
+  if(ptab==='range'&&R.rmode==='hole'){if(R.vh)drawVh();else drawThumbs();}
 }
 
 /* ---------- rounds & scorecard ---------- */
@@ -775,7 +786,7 @@ function genTrees(o,rnd){
 function mkHole(o){
   o.water=o.water||[];o.bunk=o.bunk||[];o.oob=o.oob||[];o.land=o.land||[];o.path=o.path||[];
   o.wps=o.path.slice(1).map(p=>({x:p[0],y:p[1]}));o.wps.push({x:o.pin.x,y:o.pin.y});
-  o.trees=o.trees===false?[]:genTrees(o,vhRng(o.len*131+(o.id.length*7)));
+  o.lvl=o.lvl||3;o.trees=o.trees===false?[]:genTrees(o,vhRng(o.len*131+(o.id.length*7)));
   return o;
 }
 function genHole(len,idx){
@@ -792,6 +803,20 @@ function genHole(len,idx){
   return mkHole(o);
 }
 const LIB=[
+ {id:'e1',lvl:1,name:'Meadow 1 · Gentle par 3',par:3,len:105,path:[[0,50,16],[0,100,16]],pin:{x:0,y:105},green:{x:0,y:105,rx:15,ry:12},bunk:[{x:-24,y:100,rx:6,ry:4}],
+  note:['A friendly warm-up. Wide green, no water.','Um aquecimento simpático. Green largo, sem água.']},
+ {id:'e2',lvl:1,name:'Meadow 2 · Wide open par 4',par:4,len:290,path:[[0,0,24],[0,278,24]],pin:{x:0,y:290},green:{x:0,y:290,rx:15,ry:13},bunk:[{x:-28,y:262,rx:5,ry:9}],
+  note:['A very wide fairway. Swing freely.','Um fairway muito largo. Bate à vontade.']},
+ {id:'e3',lvl:1,name:'Meadow 3 · Short par 4',par:4,len:250,path:[[0,0,22],[5,238,22]],pin:{x:5,y:250},green:{x:5,y:250,rx:14,ry:12},bunk:[{x:26,y:228,rx:5,ry:8}],
+  note:['Short enough to drive near the green.','Curto o suficiente para chegar perto do green com o driver.']},
+ {id:'e4',lvl:1,name:'Meadow 4 · Easy par 5',par:5,len:445,path:[[0,0,24],[0,200,24],[8,380,22],[8,435,18]],pin:{x:8,y:445},green:{x:8,y:445,rx:15,ry:12},
+  water:[{x:-52,y:260,rx:10,ry:16}],bunk:[{x:-14,y:458,rx:6,ry:4},{x:30,y:440,rx:5,ry:6}],
+  note:['Plenty of room. The pond is well out of play.','Muito espaço. O lago está longe da linha de jogo.']},
+ {id:'e5',lvl:1,name:'Meadow 5 · Friendly par 3',par:3,len:150,path:[[0,70,15],[0,142,15]],pin:{x:0,y:150},green:{x:0,y:150,rx:14,ry:12},
+  water:[{x:-36,y:150,rx:9,ry:14}],bunk:[{x:22,y:146,rx:6,ry:5}],
+  note:['A pond to the left, but the green is generous.','Um lago à esquerda, mas o green é generoso.']},
+ {id:'e6',lvl:1,name:'Meadow 6 · Straight par 4',par:4,len:330,path:[[0,0,22],[0,318,22]],pin:{x:0,y:330},green:{x:0,y:330,rx:14,ry:12},bunk:[{x:-30,y:200,rx:5,ry:9},{x:14,y:342,rx:6,ry:4}],
+  note:['Straight down the middle. Just one bunker to avoid.','Sempre em frente. Só um bunker a evitar.']},
  {id:'a12',name:'Augusta 12 · Golden Bell',par:3,len:142,path:[[0,92,10],[0,134,10]],pin:{x:3,y:142},green:{x:0,y:142,rx:16,ry:7},
   water:[{x:-2,y:127,rx:30,ry:3.5}],bunk:[{x:-15,y:135,rx:6,ry:3.5},{x:13,y:152,rx:7,ry:3.5},{x:-6,y:153,rx:6,ry:3.5}],
   note:['Rae’s Creek guards a shallow green. Short is wet.','O ribeiro protege um green estreito. Curto é água.']},
@@ -855,17 +880,15 @@ function vhList(v,act){
     if(o.g==='Water'&&o.mx-o.mn<=120&&!H.land.length){const c=act.filter(k=>k.carry>=o.mx+5).sort((a,b)=>a.carry-b.carry)[0];if(c&&o.mn>0)t+=' · '+tr('{0} carries it',esc(tc(c.name)));}
     return t;});
 }
-function drawVh(){
-  const v=R.vh,c=$('#vhc');if(!v||!c||v.fin)return;const H=v.h;
+function paintHole(c,H,b,ball,trail,thumb){
   const w=c.clientWidth,h=c.clientHeight,dp=window.devicePixelRatio||1;c.width=w*dp;c.height=h*dp;
   const g=c.getContext('2d');g.setTransform(dp,0,0,dp,0,0);
-  const x0=Math.min(v.x,H.pin.x)-30,x1=Math.max(v.x,H.pin.x)+30,y0=Math.min(v.y,H.pin.y)-24,y1=Math.max(v.y,H.pin.y)+30;
-  const sc=Math.min(h/(y1-y0),w/Math.max(110,x1-x0)),cx=(x0+x1)/2,cy=(y0+y1)/2,P=(x,y)=>[w/2+(x-cx)*sc,h/2-(y-cy)*sc];
+  const sc=Math.min(h/(b.y1-b.y0),w/Math.max(thumb?120:110,b.x1-b.x0)),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,P=(x,y)=>[w/2+(x-cx)*sc,h/2-(y-cy)*sc];
   const path=(s)=>{g.beginPath();if(s.poly){s.poly.forEach((p,i)=>{const q=P(p[0],p[1]);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.closePath();}else{const q=P(s.x,s.y);g.ellipse(q[0],q[1],s.rx*sc,s.ry*sc,-(s.rot||0),0,7);}};
-  const fill=(s,f,st)=>{path(s);g.fillStyle=f;g.fill();if(st){g.strokeStyle=st;g.lineWidth=1.5;g.stroke();}};
+  const fill=(s,f,st)=>{path(s);g.fillStyle=f;g.fill();if(st){g.strokeStyle=st;g.lineWidth=thumb?1:1.5;g.stroke();}};
   g.fillStyle='#2f7d3a';g.fillRect(0,0,w,h);
   g.lineCap='round';g.lineJoin='round';g.strokeStyle='#58b865';
-  for(let i=0;i<H.path.length-1;i++){const a=H.path[i],b=H.path[i+1],p=P(a[0],a[1]),q=P(b[0],b[1]);g.lineWidth=(a[2]+b[2])*sc;g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();}
+  for(let i=0;i<H.path.length-1;i++){const a=H.path[i],q2=H.path[i+1],p=P(a[0],a[1]),q=P(q2[0],q2[1]);g.lineWidth=(a[2]+q2[2])*sc;g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();}
   const t=P(0,0);g.fillStyle='#7fd18b';g.fillRect(t[0]-6*sc,t[1]-3*sc,12*sc,6*sc);
   H.water.forEach(e=>fill(e,'#3b82c4','#9cc9ef'));
   H.land.forEach(e=>fill(e,'#58b865','#3f9a4c'));
@@ -873,29 +896,46 @@ function drawVh(){
   fill(H.green,'#8be39a','#fff');
   H.bunk.forEach(e=>fill(e,'#efdfa6','#c9b26a'));
   H.trees.forEach(tr_=>{const p=P(tr_.x,tr_.y);g.beginPath();g.arc(p[0],p[1],tr_.r*sc,0,7);g.fillStyle='#1d5a2a';g.fill();g.beginPath();g.arc(p[0]-tr_.r*sc*.25,p[1]-tr_.r*sc*.25,tr_.r*sc*.55,0,7);g.fillStyle='#2b7a3a';g.fill();});
-  const gp=P(H.pin.x,H.pin.y);g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(gp[0],gp[1]);g.lineTo(gp[0],gp[1]-24);g.stroke();g.fillStyle='#ef4444';g.beginPath();g.moveTo(gp[0],gp[1]-24);g.lineTo(gp[0]+12,gp[1]-19);g.lineTo(gp[0],gp[1]-14);g.fill();
-  g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=2;g.setLineDash([5,4]);g.beginPath();v.trail.forEach((p,i)=>{const q=P(p.x,p.y);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.stroke();g.setLineDash([]);
-  const bp=P(v.x,v.y);g.beginPath();g.arc(bp[0],bp[1],5,0,7);g.fillStyle='#fff';g.fill();g.strokeStyle='#111';g.lineWidth=1.5;g.stroke();
+  const gp=P(H.pin.x,H.pin.y),fl=thumb?10:24;g.strokeStyle='#fff';g.lineWidth=thumb?1.5:2;g.beginPath();g.moveTo(gp[0],gp[1]);g.lineTo(gp[0],gp[1]-fl);g.stroke();g.fillStyle='#ef4444';g.beginPath();g.moveTo(gp[0],gp[1]-fl);g.lineTo(gp[0]+fl/2,gp[1]-fl*.8);g.lineTo(gp[0],gp[1]-fl*.6);g.fill();
+  if(trail){g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=2;g.setLineDash([5,4]);g.beginPath();trail.forEach((p,i)=>{const q=P(p.x,p.y);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.stroke();g.setLineDash([]);}
+  if(ball){const bp=P(ball.x,ball.y);g.beginPath();g.arc(bp[0],bp[1],5,0,7);g.fillStyle='#fff';g.fill();g.strokeStyle='#111';g.lineWidth=1.5;g.stroke();}
 }
+function drawVh(){
+  const v=R.vh,c=$('#vhc');if(!v||!c||v.fin)return;const H=v.h;
+  paintHole(c,H,{x0:Math.min(v.x,H.pin.x)-30,x1:Math.max(v.x,H.pin.x)+30,y0:Math.min(v.y,H.pin.y)-24,y1:Math.max(v.y,H.pin.y)+30},v,v.trail,false);
+}
+function drawThumbs(){
+  document.querySelectorAll('.hth').forEach(c=>{
+    const H=LIB.find(o=>o.id===c.dataset.hid);if(!H)return;
+    const xs=H.path.map(p=>p[0]).concat([0,H.pin.x]);
+    paintHole(c,H,{x0:Math.min.apply(null,xs)-40,x1:Math.max.apply(null,xs)+40,y0:-10,y1:H.len+22},null,null,true);
+  });
+}
+function vhName(st,par){const d=st-par;return st===1?'Hole in one!':d<=-3?'Albatross':d===-2?'Eagle':d===-1?'Birdie':d===0?'Par':d===1?'Bogey':d===2?'Double bogey':'Triple bogey or worse';}
 function vhHTML(act,sel){
   const v=R.vh,u=ul();
   if(!v){
     const ss=R.vhSel||[];
-    return '<div class="hint" style="margin-top:0">'+tr('Pick famous holes to play, or type your own hole lengths {0}. Hit real shots, enter the carry, and the app moves your ball down the hole.',tr(S.units==='y'?'in yards':'in metres'))+'</div>'+
-    '<div class="lbl" style="margin:10px 0 6px">'+tr('Famous holes')+'</div><div class="seg" style="gap:8px">'+LIB.map(o=>'<button class="'+(ss.indexOf(o.id)>=0?'on':'')+'" data-act="vhpick" data-id="'+o.id+'" style="font-size:14px;padding:8px 14px;height:auto">'+esc(o.name)+' · '+d1(o.len)+' '+u+'</button>').join('')+'</div>'+
-    '<div class="sub" style="margin:8px 0">'+tr('Layouts are simplified, not exact.')+'</div><div class="seg" style="margin-bottom:12px"><button data-act="vhall">'+tr('Select all')+'</button><button data-act="vhnone">'+tr('Clear')+'</button></div>'+
-    '<div class="lbl" style="margin-bottom:6px">'+tr('Or your own lengths')+'</div><div class="field" style="margin-top:0"><input type="text" id="vhl" value="'+esc(R.vhText||'380, 165, 510')+'"></div><button class="cta" data-act="vhstart">'+tr('Start')+'</button>';
+    const card=o=>{const pr=o.name.split(' · '),on=ss.indexOf(o.id)>=0;
+      return '<button class="hcard'+(on?' on':'')+'" data-act="vhpick" data-id="'+o.id+'">'+(on?'<span class="tick">✓</span>':'')+'<canvas class="hth" data-hid="'+o.id+'"></canvas><div class="hn">'+esc(pr[0])+'</div><div class="hs">'+esc(pr[1]||'')+'</div><div class="hm"><span>Par '+o.par+' · '+d1(o.len)+' '+u+'</span><span class="lv '+(o.lvl===1?'e':'t')+'">'+tr(o.lvl===1?'Easy':'Tough')+'</span></div></button>';};
+    return '<div class="sub" style="margin:0 0 10px">'+tr('Pick holes to play. Hit real shots, enter the carry, and the app moves your ball down the hole.')+'</div>'+
+    '<div class="seg" style="gap:8px;margin-bottom:10px"><button data-act="vhall" data-v="easy">'+tr('All easy')+'</button><button data-act="vhall" data-v="fam">'+tr('All famous')+'</button><button data-act="vhnone">'+tr('Clear')+'</button></div>'+
+    '<div class="lbl" style="margin:6px 0 8px">'+tr('Easy holes')+'</div><div class="hgrid">'+LIB.filter(o=>o.lvl===1).map(card).join('')+'</div>'+
+    '<div class="lbl" style="margin:16px 0 8px">'+tr('Famous holes')+'</div><div class="hgrid">'+LIB.filter(o=>o.lvl!==1).map(card).join('')+'</div>'+
+    '<div class="sub" style="margin:8px 0">'+tr('Layouts are simplified, not exact.')+'</div>'+
+    (ss.length?'<button class="cta" data-act="vhstart">'+tr('Play {0} holes',ss.length)+'</button>':'')+
+    '<div class="lbl" style="margin:16px 0 6px">'+tr('Or your own lengths')+'</div><div class="row" style="flex-wrap:nowrap"><input type="text" id="vhl" value="'+esc(R.vhText||'380, 165, 510')+'"><button class="sec" data-act="vhstart" style="flex:none">'+tr('Start')+'</button></div>';
   }
   if(v.fin){
     const tot=v.done.reduce((a,h)=>a+h.strokes,0),par=v.done.reduce((a,h)=>a+h.par,0);
     return '<div class="big-msg center">'+tr('Round complete')+'</div>'+v.done.map((h,i)=>'<div class="shot"><b>'+esc(h.name||tr('Hole {0}',i+1))+'</b><span>'+d1(h.len)+' '+u+' · par '+h.par+' · <b>'+h.strokes+'</b> ('+fmtTo(h.strokes-h.par)+')</span></div>').join('')+'<div class="shot"><b>'+tr('Total')+'</b><span><b>'+tot+'</b> ('+fmtTo(tot-par)+')</span></div><button class="cta" style="margin-top:14px" data-act="vhquit">'+tr('Done')+'</button>';
   }
   const H=v.h,len=H.len,par=H.par;
-  let h='<div class="lbl">'+(H.name?esc(H.name)+' · ':'')+tr('Hole {0} of {1} · par {2}',v.i+1,v.holes.length,par)+' · '+d1(len)+' '+u+'</div><canvas id="vhc" style="width:100%;height:300px;border-radius:14px;display:block;margin:8px 0"></canvas>';
+  let h=(H.name?'<div class="vhtitle">'+esc(H.name.split(' · ')[0])+(H.name.indexOf(' · ')>0?' <span style="font-weight:600;color:var(--mut);font-size:16px">'+esc(H.name.split(' · ')[1])+'</span>':'')+'</div>':'')+'<div class="lbl">'+tr('Hole {0} of {1} · par {2}',v.i+1,v.holes.length,par)+' · '+d1(len)+' '+u+'</div><canvas id="vhc" style="width:100%;height:300px;border-radius:14px;display:block;margin:8px 0"></canvas>';
   if(H.note&&v.strokes===0&&!v.res)h+='<div class="sub" style="margin-bottom:6px">'+esc(S.lang==='pt'?H.note[1]:H.note[0])+'</div>';
   if(v.res){
     const d=v.strokes-par;
-    h+='<div class="big-msg">'+tr('{0} strokes ({1})',v.strokes,fmtTo(d))+'</div><div class="why">'+(v.res.pick?tr('Pick up. Too many strokes.'):tr('On the green, {0} {1} from the pin. Putts: {2}.',d1(v.res.rem),u,v.res.putts))+'</div><button class="cta" style="margin-top:14px" data-act="vhnext">'+tr(v.i>=v.holes.length-1?'Done':'Next hole ›')+'</button>';
+    h+='<div class="big-msg" style="color:'+(d<0?'#15803d':d>0?'#b45309':'var(--ink)')+'">'+tr(vhName(v.strokes,par))+'</div><div class="sub">'+tr('{0} strokes ({1})',v.strokes,fmtTo(d))+'</div><div class="why">'+(v.res.pick?tr('Pick up. Too many strokes.'):tr('On the green, {0} {1} from the pin. Putts: {2}.',d1(v.res.rem),u,v.res.putts))+'</div><button class="cta" style="margin-top:14px" data-act="vhnext">'+tr(v.i>=v.holes.length-1?'Done':'Next hole ›')+'</button>';
     return h;
   }
   const rem=vhRem(v),rc=recommend(rem,null),rb=rc.best||rc.longest;
@@ -1007,7 +1047,7 @@ function act(a,b){
       if(!hs.length)return;
       R.vh={holes:hs,i:0,h:hs[0],x:0,y:0,wp:0,strokes:0,done:[],res:null,last:null,fin:false,trail:[{x:0,y:0}],lie:'tee',msg:''};R.rd=null;openPanel('range');return;}
     case 'vhpick':{if($('#vhl'))R.vhText=$('#vhl').value;const ss=R.vhSel=R.vhSel||[],k=ss.indexOf(b.dataset.id);if(k>=0)ss.splice(k,1);else ss.push(b.dataset.id);openPanel('range');return;}
-    case 'vhall':if($('#vhl'))R.vhText=$('#vhl').value;R.vhSel=LIB.map(o=>o.id);openPanel('range');return;
+    case 'vhall':if($('#vhl'))R.vhText=$('#vhl').value;R.vhSel=LIB.filter(o=>v==='easy'?o.lvl===1:v==='fam'?o.lvl!==1:true).map(o=>o.id);openPanel('range');return;
     case 'vhnone':if($('#vhl'))R.vhText=$('#vhl').value;R.vhSel=[];openPanel('range');return;
     case 'vhhit':{const vv=R.vh,cl=S.clubs.find(x=>x.id===S.rsel);if(!vv||!cl)return;
       S.rlog.push({club:S.rsel,d:R.rd,side:R.rmiss||'c',t:Date.now()});S.rlog=S.rlog.slice(-300);
