@@ -62,7 +62,7 @@ function dlHTML(){
   return h;
 }
 /* judge one swing in a drill session */
-function drIntro(){const d=SWV.drill;return T('Drill started: '+d.name[0]+'. Swing when you are ready.','Exercício iniciado: '+d.name[1]+'. Faz o swing quando estiveres pronto.');}
+function drIntro(){const d=SWV.drill;return T('Drill started: '+d.name[0]+'. Take your address and hold still until the beep, then swing.','Exercício iniciado: '+d.name[1]+'. Põe-te em address, fica parado até ouvires o apito e depois faz o swing.');}
 function drJudge(res,S_){
   const d=SWV.drill,j=d.judge(res);
   S_.n++;S_.pass=(S_.pass||0)+(j.ok?1:0);S_.st=j.ok?(S_.st||0)+1:0;S_.bs=Math.max(S_.bs||0,S_.st);S_.items.push({ok:j.ok,val:j.val,score:res.score});
