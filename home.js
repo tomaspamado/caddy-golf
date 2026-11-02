@@ -45,11 +45,12 @@ function hmGameHTML(){
   return h;
 }
 function hmDraw(){const g=document.getElementById('hmgame');if(!g)return;g.innerHTML=hmGameHTML();if(R.vh&&!R.vh.fin&&typeof drawVh==='function')drawVh();}
+function hmCam(){return swSeg('cam',SWV.cam,[['environment',T('Back camera','Câmara traseira')],['user',T('Front camera','Câmara frontal')]])+swSeg('view',SWV.view,[['dtl',T('Down the line','Por trás')],['fo',T('Face on','De frente')]]);}
 function hmHTML(){
   const cal=S.home&&S.home.vFull;
   const note='<div class="hint">'+tr('Swing without a ball. The camera reads your hand speed (distance) and your swing quality (how well you hit it). Direction is a weighted random draw, because the camera cannot see the clubface.')+'</div>';
-  if(HM.view==='cal')return note+'<div class="aim" style="background:var(--soft);color:var(--ink)">'+tr('Do 3 full swings at your normal full pace. I measure your hand speed.')+'</div><div id="hmcal" class="sub" style="margin:8px 0">'+HM.cal.length+' / 3</div>'+swCamBox()+'<div class="center"><button class="link" data-hm="back">‹ '+tr('Back')+'</button></div>';
-  if(HM.view==='play')return '<div id="hmgame"></div>'+swCamBox()+'<div class="center"><button class="link" data-hm="quit">'+tr('End game')+'</button></div>';
+  if(HM.view==='cal')return note+'<div class="aim" style="background:var(--soft);color:var(--ink)">'+tr('Do 3 full swings at your normal full pace. I measure your hand speed.')+'</div><div id="hmcal" class="sub" style="margin:8px 0">'+HM.cal.length+' / 3</div>'+hmCam()+swCamBox()+'<div class="center"><button class="link" data-hm="back">‹ '+tr('Back')+'</button></div>';
+  if(HM.view==='play')return '<div id="hmgame"></div>'+hmCam()+swCamBox()+'<div class="center"><button class="link" data-hm="quit">'+tr('End game')+'</button></div>';
   return note+'<div class="pick" style="display:block"><b>'+(cal?tr('Calibrated'):tr('Not calibrated yet'))+'</b><div class="sub" style="margin:4px 0 8px">'+(cal?'≈ '+(S.home.vFull*0.5).toFixed(1)+' m/s '+tr('hand speed')+'. ':'')+tr('Do 3 full swings at your normal full pace. I measure your hand speed.')+'</div><button class="cta" data-hm="cal">'+(cal?tr('Calibrate again'):tr('Calibrate'))+'</button></div>'+(cal?'<div class="lbl" style="margin:14px 0 8px">'+tr('Courses')+'</div>'+hmCourses():'<div class="sub">'+tr('Calibrate first, then pick a course.')+'</div>');
 }
 function hmMount(){
