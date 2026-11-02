@@ -20,8 +20,12 @@ function hmPlan(){
   const v=R.vh,act=S.clubs.filter(c=>c.on),rem=vhRem(v),rc=recommend(rem,null);let rb=rc.best||rc.longest;
   const vd=vhDecide(v,rc,rem);if(vd&&rc.best)rb=rc.list.find(x=>x.id===vd.club.id)||rb;
   const key=v.i+'|'+v.strokes;if(HM.key!==key){HM.key=key;HM.sel=null;}
-  const cl=(HM.sel&&act.find(c=>c.id===HM.sel))||(rb&&act.find(c=>c.id===rb.id))||act[0];
+  const cl0=(HM.sel&&act.find(c=>c.id===HM.sel))||(rb&&act.find(c=>c.id===rb.id))||act[0];
   const lm=v.lie==='rough'?.9:v.lie==='bunker'?.8:1,rmu=v.lie==='rough'?.4:v.lie==='bunker'?0:1;
+  const need=c=>(rc.plays-c.roll*0.6*rmu)/lm/c.carry;
+  let cl=cl0;
+  if(!(HM.sel&&act.find(c=>c.id===HM.sel))&&need(cl)<0.75){
+    let bst=null;act.forEach(c=>{const n=need(c);if(c.carry>0&&n>=0.75&&n<=1.02&&(!bst||n>need(bst)))bst=c;});if(bst)cl=bst;}
   const plan=Math.max(0,Math.min(cl.carry,(rc.plays-cl.roll*0.6*rmu)/lm));
   return{rem:rem,rc:rc,cl:cl,act:act,plan:plan,pct:Math.max(0,Math.min(100,Math.round(plan/cl.carry*100)))};
 }
@@ -58,7 +62,7 @@ function hmDraw(){
   document.getElementById('hmtop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><div style="font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(nm[0])+(nm[1]?' <span style="font-weight:600;font-size:13px;opacity:.8">'+esc(nm[1])+'</span>':'')+'</div><div style="font-size:12px;opacity:.85">'+tr('Hole {0} of {1} · par {2}',v.i+1,v.holes.length,H.par)+' · '+d1(H.len)+' '+u+'</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;font-size:26px;line-height:1">'+d1(p.rem)+'<span style="font-size:13px;margin-left:2px">'+u+'</span></div><div style="font-size:12px;opacity:.85">'+tr('Stroke {0}',v.strokes+1)+'</div></div></div><div style="display:flex;gap:6px;margin-top:6px"><button class="cond" style="color:#0f1f16;min-height:34px;font-size:12px;padding:0 10px" data-hm="cam">⟲ '+(SWV.cam==='user'?T('Front','Frontal'):T('Back','Traseira'))+'</button><button class="cond" style="color:#0f1f16;min-height:34px;font-size:12px;padding:0 10px" data-hm="view">'+(SWV.view==='dtl'?T('Down the line','Por trás'):T('Face on','De frente'))+'</button><button class="cond" style="color:#0f1f16;min-height:34px;font-size:12px;padding:0 10px;margin-left:auto" data-hm="quit">'+tr('End game')+'</button></div>';
   document.getElementById('hmnote').innerHTML=(HM.note?'<div style="background:#effaf2;color:#166534;border-radius:10px;padding:7px 10px;font-weight:700;font-size:13px;margin-bottom:4px">'+HM.note+'</div>':'')+(v.msg?'<div style="background:#fff7e6;color:var(--warn);border-radius:10px;padding:7px 10px;font-weight:700;font-size:13px">'+v.msg+'</div>':'');
   const pw=p.pct>=95?tr('Full swing'):swingWord(p.pct);
-  document.getElementById('hmact').innerHTML=(SWV.state==='auto'?'<div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(tc(p.cl.name))+' · '+(p.pct>=95?100:p.pct)+'% <span style="font-weight:600;font-size:12px;color:var(--mut)">'+pw+'</span></div>':'')+(HM.wait&&SWV.state==='auto'?'<button class="cta" style="padding:13px;font-size:16px" data-hm="next">'+T('Ready ▶ ','Pronto ▶ ')+esc(tc(p.cl.name))+' '+(p.pct>=95?100:p.pct)+'%</button>':'');
+  document.getElementById('hmact').innerHTML=(SWV.state==='auto'?'<div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(tc(p.cl.name))+' · '+(p.pct>=95?100:p.pct)+'% <span style="font-weight:600;font-size:12px;color:var(--mut)">'+pw+'</span></div>':'')+(HM.wait&&SWV.state==='auto'?'<div style="font-size:11px;color:var(--mut);margin:0 0 6px">🙌 '+T('both hands up = Ready · right fist pump = shorter club · left = longer (2 pumps = 2 clubs)','duas mãos no ar = Pronto · punho direito = taco mais curto · esquerdo = mais longo (2 = 2 tacos)')+'</div><button class="cta" style="padding:13px;font-size:16px" data-hm="next">'+T('Ready ▶ ','Pronto ▶ ')+esc(tc(p.cl.name))+' '+(p.pct>=95?100:p.pct)+'%</button>':'');
   document.getElementById('hmclubs').innerHTML=p.act.map(c=>'<button class="cond'+(c.id===p.cl.id?' pickon':'')+'" data-hm="club" data-id="'+c.id+'">'+esc(tc(c.name))+'</button>').join('');
   const c=document.getElementById('vhc');if(c&&typeof paintHole==='function')paintHole(c,H,hmBounds(H),v,v.trail,false);
 }
@@ -81,7 +85,7 @@ function hmSessStart(){
   SWV.sess={n:0,items:[],lastTip:'',fail:0};SWV.state='auto';SWV.auto={phase:'prep',buf:[],p:null,pt:0,sp:0,swung:false,mv:0,t1:0,vt:0};
   swBtns();
   if(HM.view==='play'&&R.vh){
-    HM.wait=true;hmDraw();const p=hmPlan();
+    HM.wait=true;HM.waitId=(HM.waitId||0)+1;hmDraw();const p=hmPlan();
     swMsg(T('Pick your club, then tap Ready.','Escolhe o taco e toca em Pronto.'));
     swSay(T('First shot: '+tc(p.cl.name)+' at '+p.pct+' percent. Change club if you want, then tap Ready.','Primeira tacada: '+tc(p.cl.name)+' a '+p.pct+' por cento. Muda de taco se quiseres e toca em Pronto.'));
   }else{
@@ -111,7 +115,7 @@ swAutoDone=function(){
 };
 function hmMed(a){const s=a.slice().sort((x,y)=>x-y);return s[Math.floor(s.length/2)];}
 function hmReady(){
-  HM.wait=true;hmDraw();
+  HM.wait=true;HM.waitId=(HM.waitId||0)+1;hmDraw();
   const p=R.vh&&!R.vh.fin?hmPlan():null;
   swMsg(T('Pick your club if you want, then tap Ready.','Escolhe o taco se quiseres e toca em Pronto.'));
   return p;
@@ -169,6 +173,37 @@ const _dlRenderH=dlRender;
 dlRender=function(){_dlRenderH();if(DL.mode==='home')hmMount();};
 const _swMountH=swingMount;
 swingMount=function(){_swMountH();if(DL.mode==='home')hmMount();};
+
+/* ---------- hand gestures (while waiting between shots) ---------- */
+function hmGo(){if(!HM.wait)return;HM.wait=false;hmDraw();swMsg(T('Address the ball and hold still.','Põe-te em address e fica parado.'));swArm();}
+function hmShift(dir,n){
+  const p=hmPlan(),act=p.act.slice().sort((a,b)=>b.carry-a.carry),i=act.findIndex(c=>c.id===p.cl.id);
+  const j=Math.max(0,Math.min(act.length-1,i+(dir==='down'?n:-n)));
+  if(j===i){swSay(dir==='down'?T('That is already your shortest club.','Já é o teu taco mais curto.'):T('That is already your longest club.','Já é o teu taco mais longo.'));return;}
+  HM.sel=act[j].id;hmDraw();const q=hmPlan();
+  swSay(tc(q.cl.name)+', '+T(q.pct+' percent','' +q.pct+' por cento')+'.');
+}
+const GS={ok:false,wid:-1,cool:0,both:0,h:{r:{st:'down',n:0,t:0},l:{st:'down',n:0,t:0}}};
+function hmGest(L,now){
+  if(!(SWV.home&&HM.view==='play'&&HM.wait&&SWV.state==='auto')||!L){GS.both=0;return;}
+  if(GS.wid!==HM.waitId){GS.wid=HM.waitId;GS.ok=false;GS.both=0;GS.cool=now+1200;['r','l'].forEach(k=>{GS.h[k]={st:'down',n:0,t:0};});}
+  if(now<GS.cool)return;
+  if([0,11,12,15,16].some(k=>!L[k]||L[k][2]<0.3))return;
+  const sh=(L[11][1]+L[12][1])/2,hip=(L[23][1]+L[24][1])/2,Ls=Math.max(.05,hip-sh),nose=L[0][1],ly=L[15][1],ry=L[16][1];
+  if(!GS.ok){if(ly>sh&&ry>sh)GS.ok=true;return;}
+  if(ly<nose&&ry<nose){if(!GS.both)GS.both=now;if(now-GS.both>600){GS.cool=now+1500;GS.both=0;swSay(T('Ready.','Pronto.'));hmGo();}return;}
+  GS.both=0;
+  const up=sh-0.2*Ls,dn=sh+0.15*Ls;
+  [['r',ry,ly],['l',ly,ry]].forEach(([k,y,oy])=>{
+    const h=GS.h[k];
+    if(h.st==='down'&&y<up&&oy>up){h.st='up';h.n++;h.t=now;}
+    else if(h.st==='up'&&y>dn){h.st='down';h.t=now;}
+    else if(h.n>0&&h.st==='down'&&now-h.t>700){const n=Math.min(2,h.n);h.n=0;GS.cool=now+1500;hmShift(k==='r'?'down':'up',n);}
+    else if(h.n>0&&h.st==='up'&&now-h.t>2500){h.n=0;h.st='down';}
+  });
+}
+const _swDrawLmH=swDrawLm;
+swDrawLm=function(cv,L,o){_swDrawLmH(cv,L,o);try{hmGest(L,performance.now());}catch(e){}};
 function hmClose(){const o=hmOv();if(o)o.remove();}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-hm]');if(!b)return;const a=b.dataset.hm;
@@ -177,7 +212,7 @@ document.addEventListener('click',e=>{
   else if(a==='done'){swingStop();SWV.home=false;R.vh=null;HM.view='setup';hmClose();dlRender();}
   else if(a==='quit'){swingStop();SWV.home=false;R.vh=null;HM.view='setup';HM.wait=false;hmClose();dlRender();}
   else if(a==='club'){HM.sel=b.dataset.id;hmDraw();}
-  else if(a==='next'){HM.wait=false;hmDraw();swMsg(T('Address the ball and hold still.','Põe-te em address e fica parado.'));swArm();}
+  else if(a==='next'){hmGo();}
   else if(a==='cam'){const on=!!SWV.stream;hmStop();SWV.cam=SWV.cam==='user'?'environment':'user';if(on){swStopCam();swStart();}hmDraw();}
   else if(a==='view'){SWV.view=SWV.view==='dtl'?'fo':'dtl';hmDraw();}
   else if(a==='course'){const keep=S.mpNames;S.mpNames=[];try{hmQuiet(()=>act('crsplay',{dataset:{id:b.dataset.id,v:b.dataset.v}}));}finally{S.mpNames=keep;}HM.view='play';HM.key=null;HM.note='';HM.wait=false;HM.starting=false;swingStop();SWV.home=true;hmClose();dlRender();}
