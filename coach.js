@@ -18,7 +18,23 @@ const CM={
  bal:['How much you wobble in the finish. Good balance means a controlled swing.','Quanto oscilas no final. Bom equilíbrio significa um swing controlado.']
 };
 function cmParse(v){const m=/^\s*([+-]?\d+(?:\.\d+)?)(.*)$/.exec(String(v));return m?{n:parseFloat(m[1]),u:m[2]}:null;}
-const _swAnalyzeC=swAnalyze;
+/* ---------- retuned targets (amateur-realistic) and body scaling, patched onto swing.js at load ---------- */
+Object.assign(SW_CLS.driver,{sh:[[75,105],[58,125]],hip:[[32,55],[22,65]],xf:[[25,55],[15,65]]});
+Object.assign(SW_CLS.wood,{sh:[[72,102],[56,122]],hip:[[30,52],[20,62]],xf:[[24,52],[14,62]]});
+Object.assign(SW_CLS.long,{sh:[[70,98],[54,118]],hip:[[28,48],[18,58]],xf:[[22,48],[12,58]]});
+Object.assign(SW_CLS.short,{sh:[[64,92],[50,112]],hip:[[26,46],[16,56]],xf:[[20,46],[10,56]]});
+Object.assign(SW_CLS.wedge,{sh:[[52,82],[40,98]],hip:[[20,40],[12,50]],xf:[[14,40],[6,50]]});
+function swLvl(c){const m=S.mob==='low'?-10:S.mob==='high'?8:0;if(!m)return c;const sh=g=>g.map(r=>[r[0]+m,r[1]+m]),hp=g=>g.map(r=>[r[0]+m*.6,r[1]+m*.6]);return Object.assign({},c,{sh:sh(c.sh),hip:hp(c.hip),xf:hp(c.xf)});}
+let _swAnalyzeBase=swAnalyze;
+try{
+  let src=swAnalyze.toString();
+  const a="C=SW_CLS[o.cls]||SW_CLS.long",b="cm=v=>v/L0*50";
+  if(src.indexOf(a)>0&&src.indexOf(b)>0){
+    src=src.replace(a,"C=swLvl(SW_CLS[o.cls]||SW_CLS.long)").replace(b,"cm=v=>v/L0*(S.heightCm>120&&S.heightCm<230?S.heightCm*0.288:50)");
+    _swAnalyzeBase=(0,eval)('('+src+')');
+  }
+}catch(e){}
+const _swAnalyzeC=_swAnalyzeBase;
 swAnalyze=function(F,o){const r=_swAnalyzeC(F,o);SWV.lastRes=r;return r;};
 const _swAutoDoneC=swAutoDone;
 swAutoDone=function(){
@@ -58,3 +74,13 @@ swSessEnd=function(){
 const _swMountC=swingMount;
 swingMount=function(){_swMountC();const e=document.getElementById('swsess');
   if(e&&!SWV.sess&&!SWV.home&&DL.mode==='coach'&&S.coachRep&&!e.innerHTML.trim()){e.innerHTML='<div class="lbl" style="margin:8px 0 4px">'+T('Last session','Última sessão')+'</div>'+S.coachRep.h;e.style.display='block';}};
+
+/* ---------- your body: height and mobility make the numbers fit you ---------- */
+const _wrapC=swingHTMLBase_wrap;
+swingHTMLBase_wrap=function(){
+  const h=_wrapC();if(DL.mode!=='coach')return h;
+  const m=S.mob||'norm';
+  return h+'<div class="hint" style="background:#fff;border:1.5px solid var(--line)"><b style="color:var(--ink)">'+T('Your body','O teu corpo')+'</b><div class="sub" style="font-size:13px;margin:4px 0 8px">'+T('Height makes the distances (head, hips, hands) accurate. Mobility moves the turn targets up or down. Set them once.','A altura torna as distâncias (cabeça, anca, mãos) precisas. A mobilidade ajusta os objetivos de rotação. Define uma vez.')+'</div><div class="row" style="margin-bottom:8px"><span style="font-weight:700">'+T('Height (cm)','Altura (cm)')+'</span><input type="number" inputmode="numeric" id="cbh" data-cb="height" value="'+(S.heightCm||'')+'" placeholder="175" style="width:90px"></div><div class="seg">'+[['low',T('Stiff','Rígido')],['norm',T('Normal','Normal')],['high',T('Very mobile','Muito flexível')]].map(x=>'<button class="'+(m===x[0]?'on':'')+'" data-cb="mob" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
+};
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.cb==='height'){const v=parseFloat(t.value);S.heightCm=(v>120&&v<230)?Math.round(v):0;save();}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cb="mob"]');if(!b)return;S.mob=b.dataset.v;save();dlRender();});
