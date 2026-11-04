@@ -2,19 +2,25 @@
 /* ================= Home golf: swing without a ball, the camera plays the shot ================= */
 Object.assign(PT,{
  'Home':'Casa','Home golf':'Golfe em casa','Calibrate':'Calibrar','Calibrated':'Calibrado','Not calibrated yet':'Ainda não calibrado','Start playing':'Começar a jogar','Stop':'Parar',
- 'Do 3 full swings at your normal full pace. I measure your hand speed.':'Faz 3 swings completos ao teu ritmo normal. Eu meço a velocidade das mãos.'
+ 'Do 3 full swings at your normal full pace, as if with a 7-iron. I measure hand speed and backswing.':'Faz 3 swings completos ao teu ritmo normal, como com um ferro 7. Eu meço a velocidade das mãos e a subida.'
 });
 const HM={view:'setup',cal:[],key:null,sel:null,note:'',last:null};
 function hmGauss(){let u=0,v=0;while(!u)u=Math.random();v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 function hmQuiet(fn){const o=openPanel;openPanel=function(){};try{return fn();}finally{openPanel=o;}}
 function hmChs(cl,carry){const n=String(cl.name||'');const k=/driver/i.test(n)?4.3:/wood|hybrid|rescue/i.test(n)?4.0:/wedge/i.test(n)?3.2:(/^\s*[3-6]/.test(n)?3.8:3.5);return carry/k;}
+function hmHF(cl){const n=String(cl.name||'');return /driver/i.test(n)?1.06:/wood/i.test(n)?1.04:/hybrid|rescue/i.test(n)?1.02:/wedge/i.test(n)?.95:/^\s*[3-5]/.test(n)?1.01:/^\s*[89]|pw/i.test(n)?.98:1;}
+function hmLen(r){const P=[[0,.12],[.15,.3],[.28,.5],[.56,.75],[.84,.9],[1,1],[1.12,1.05]];r=Math.max(0,Math.min(1.12,r));for(let i=1;i<P.length;i++)if(r<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(r-a[0])/(b[0]-a[0]);}return 1.05;}
 function hmMeasure(res,F){
-  const ar=SWV.ar||0.5625,n=F.length,H=F.map(f=>[(f.i[15][0]+f.i[16][0])/2*ar,(f.i[15][1]+f.i[16][1])/2]);
-  const a=Math.max(2,res.idx[1]-2),b=Math.min(n-3,res.idx[2]+2),s=[];
-  for(let i=2;i<n-2;i++){const dt=Math.max(.001,(F[i+2].t-F[i-2].t)/1000);s[i]=Math.hypot(H[i+2][0]-H[i-2][0],H[i+2][1]-H[i-2][1])/dt/res.L0;}
+  const n=F.length,W=F.every(f=>f.w&&f.w[15]&&f.w[16]),ar=SWV.ar||0.5625;
+  const mid=(f,i,j)=>W?[0,1,2].map(k=>(f.w[i][k]+f.w[j][k])/2):[(f.i[i][0]+f.i[j][0])/2*ar*res.L0*0.5,(f.i[i][1]+f.i[j][1])/2*res.L0*0.5,0];
+  const Hd=F.map(f=>mid(f,15,16)),Sh=F.map(f=>mid(f,11,12)),Hp=F.map(f=>mid(f,23,24));
+  const a=Math.max(2,res.idx[1]-2),b=Math.min(n-3,res.idx[2]+2),s=[],span=50;
+  for(let i=1;i<n-1;i++){let j=i,k=i;while(j>0&&F[i].t-F[j].t<span)j--;while(k<n-1&&F[k].t-F[i].t<span)k++;const dt=(F[k].t-F[j].t)/1000;if(dt<.03){s[i]=null;continue;}s[i]=Math.hypot(Hd[k][0]-Hd[j][0],Hd[k][1]-Hd[j][1],Hd[k][2]-Hd[j][2])/dt;}
   let pk=0;for(let i=a+1;i<=b-1;i++){if(s[i-1]==null||s[i+1]==null||s[i]==null)continue;const w=(s[i-1]+s[i]+s[i+1])/3;if(w>pk)pk=w;}
-  let arc=0;for(let i=res.idx[0]+1;i<=res.idx[1]&&i<n;i++)arc+=Math.hypot(H[i][0]-H[i-1][0],H[i][1]-H[i-1][1]);
-  return{pk:pk,arc:arc/res.L0};
+  const ang=i=>{const t=[0,1,2].map(k=>Hp[i][k]-Sh[i][k]),r=[0,1,2].map(k=>Hd[i][k]-Sh[i][k]),d=t[0]*r[0]+t[1]*r[1]+t[2]*r[2],m=Math.hypot(...t)*Math.hypot(...r)||1;return Math.acos(Math.max(-1,Math.min(1,d/m)))*180/Math.PI;};
+  let a0=0,c0=0;for(let i=Math.max(0,res.idx[0]-2);i<=Math.min(n-1,res.idx[0]+2);i++){a0+=ang(i);c0++;}a0/=Math.max(1,c0);
+  let a1=0;for(let i=Math.max(0,res.idx[1]-3);i<=Math.min(n-1,res.idx[1]+3);i++)a1=Math.max(a1,ang(i));
+  return{pk:pk,da:Math.max(5,a1-a0),sc:res.score};
 }
 function hmPlan(){
   const v=R.vh,act=S.clubs.filter(c=>c.on),rem=vhRem(v),rc=recommend(rem,null);let rb=rc.best||rc.longest;
@@ -68,11 +74,11 @@ function hmDraw(){
 }
 function hmCam(){return swSeg('cam',SWV.cam,[['environment',T('Back camera','Câmara traseira')],['user',T('Front camera','Câmara frontal')]])+swSeg('view',SWV.view,[['dtl',T('Down the line','Por trás')],['fo',T('Face on','De frente')]]);}
 function hmHTML(){
-  const cal=S.home&&S.home.ver===2&&S.home.vFull;
+  const cal=S.home&&S.home.ver===3&&S.home.vFull;
   const note='<div class="hint">'+tr('Swing without a ball. The camera reads your hand speed (distance) and your swing quality (how well you hit it). Direction is a weighted random draw, because the camera cannot see the clubface.')+'</div>';
-  if(HM.view==='cal')return note+'<div class="aim" style="background:var(--soft);color:var(--ink)">'+tr('Do 3 full swings at your normal full pace. I measure your hand speed.')+'</div><div id="hmcal" class="sub" style="margin:8px 0">'+HM.cal.length+' / 3</div>'+hmCam()+swCamBox()+'<div class="center"><button class="link" data-hm="back">‹ '+tr('Back')+'</button></div>';
+  if(HM.view==='cal')return note+'<div class="aim" style="background:var(--soft);color:var(--ink)">'+tr('Do 3 full swings at your normal full pace, as if with a 7-iron. I measure hand speed and backswing.')+'</div><div id="hmcal" class="sub" style="margin:8px 0">'+HM.cal.length+' / 3</div>'+hmCam()+swCamBox()+'<div class="center"><button class="link" data-hm="back">‹ '+tr('Back')+'</button></div>';
   if(HM.view==='play')return '<div class="sub" style="margin:20px 0">'+T('Game in progress.','Jogo em curso.')+'</div><button class="cta" data-hm="quit">'+tr('End game')+'</button>';
-  return note+'<div class="pick" style="display:block"><b>'+(cal?tr('Calibrated'):tr('Not calibrated yet'))+'</b><div class="sub" style="margin:4px 0 8px">'+(cal?'≈ '+(S.home.vFull*0.5).toFixed(1)+' m/s '+tr('hand speed')+'. ':'')+tr('Do 3 full swings at your normal full pace. I measure your hand speed.')+'</div><button class="cta" data-hm="cal">'+(cal?tr('Calibrate again'):tr('Calibrate'))+'</button></div>'+(cal?'<div class="lbl" style="margin:14px 0 8px">'+tr('Courses')+'</div>'+hmCourses():'<div class="sub">'+tr('Calibrate first, then pick a course.')+'</div>');
+  return note+'<div class="pick" style="display:block"><b>'+(cal?tr('Calibrated'):tr('Not calibrated yet'))+'</b><div class="sub" style="margin:4px 0 8px">'+(cal?'≈ '+S.home.vFull.toFixed(1)+' m/s '+tr('hand speed')+'. ':'')+tr('Do 3 full swings at your normal full pace, as if with a 7-iron. I measure hand speed and backswing.')+'</div><button class="cta" data-hm="cal">'+(cal?tr('Calibrate again'):tr('Calibrate'))+'</button></div>'+(cal?'<div class="lbl" style="margin:14px 0 8px">'+tr('Courses')+'</div>'+hmCourses():'<div class="sub">'+tr('Calibrate first, then pick a course.')+'</div>');
 }
 function hmMount(){
   if(HM.view==='cal'){swBtns();swMsg(T('Tap Start camera to begin.','Toca em Ligar câmara para começar.'));}
@@ -126,17 +132,17 @@ function hmJudge(res,S_){
   if(HM.view==='cal'){
     HM.cal.push(m);S_.n++;const c=document.getElementById('hmcal');if(c)c.textContent=HM.cal.length+' / 3';
     if(HM.cal.length<3){swMsg(T('Swing '+HM.cal.length+' of 3 recorded.','Swing '+HM.cal.length+' de 3 gravado.'));swSay(T('Swing '+HM.cal.length+' recorded.','Swing '+HM.cal.length+' gravado.'),()=>setTimeout(swArm,1200));return;}
-    S.home={ver:2,vFull:hmMed(HM.cal.map(x=>x.pk)),lFull:hmMed(HM.cal.map(x=>x.arc)),t:Date.now()};save();HM.cal=[];
+    S.home={ver:3,vFull:hmMed(HM.cal.map(x=>x.pk)),aFull:hmMed(HM.cal.map(x=>x.da)),sFull:hmMed(HM.cal.map(x=>x.sc)),t:Date.now()};save();HM.cal=[];
     swSay(T('Calibrated. Your full swing is now my one hundred percent.','Calibrado. O teu swing completo é agora o meu cem por cento.'),()=>{hmStop();HM.view='setup';dlRender();});
     return;
   }
   const v=R.vh;if(!v)return;
-  const p=hmPlan(),cl=p.cl,H_=S.home,vf=H_.vFull,lf=H_.lFull;
-  const sr=pk/vf,lr=lf?m.arc/lf:sr;
-  let pct=Math.max(0.1,Math.min(1.1,lf?0.6*sr+0.4*lr:sr));
-  if(p.pct>=95&&pct>1.04){H_.vFull=vf+0.25*(pk-vf);if(lf)H_.lFull=lf+0.25*(m.arc-lf);save();}
+  const p=hmPlan(),cl=p.cl,H_=S.home,vf=H_.vFull*hmHF(cl),af=H_.aFull;
+  const sr=pk/vf,lr=m.da/af,spd=Math.pow(Math.max(0,sr),1.3),len=hmLen(lr);
+  let pct=Math.max(0.1,Math.min(1.1,Math.min(spd,len*1.1)));
+  if(p.pct>=95&&pct>1.04){H_.vFull+=0.25*(pk/hmHF(cl)-H_.vFull);H_.aFull+=0.25*(m.da-af);save();}
   const M=k=>res.M.find(x=>x.key===k),td=M('tiltd')?parseFloat(M('tiltd').val):0;
-  let eff=Math.max(0.78,Math.min(1,0.78+0.22*res.score/100)),fl='n',tag='';
+  const q=Math.max(0.85,1-0.004*Math.max(0,(H_.sFull||80)-res.score));let eff=q,fl='n',tag='';
   if(td<-8){eff*=0.93;fl='l';tag=T('thin, ','fina, ');}else if(td>8){eff*=0.8;tag=T('fat, ','pesada, ');}
   const carry=Math.max(0,cl.carry*pct*eff*(1+0.02*hmGauss()));
   const sp=spread(cl),sig=sp.lat/1.28,lat=hmGauss()*sig*(1.5-0.8*res.score/100);
@@ -144,7 +150,7 @@ function hmJudge(res,S_){
   S_.n++;
   hmApply(cl,carry,lat,fl);
   const side=Math.abs(lat)<1?T('on line','na linha'):d1(Math.abs(lat))+' '+u+' '+T(lat<0?'left':'right',lat<0?'esquerda':'direita');
-  const pc=Math.round(pct*100);
+  const pc=Math.round(pct*q*100);
   let say=tc(cl.name)+', '+pc+' '+T('percent','por cento')+'. '+tag+d1(carry)+' '+u+', '+side+'. ';
   HM.note=esc(tc(cl.name))+' · '+pc+'% ('+T('speed','velocidade')+' '+Math.round(sr*100)+', '+T('backswing','subida')+' '+Math.round(lr*100)+') · '+tag+d1(carry)+' '+u+' · '+side+' · ≈'+Math.round(chs)+' m/s';
   const vv=R.vh;
