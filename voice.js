@@ -13,7 +13,16 @@ function sqNext(){
     if(v)u.voice=v;u.rate=1;u.onend=fin;u.onerror=fin;
     it.u=u;                                   /* keep a reference: browsers drop speech if it is garbage collected */
     tm=setTimeout(fin,4000+it.txt.length*130);
-    speechSynthesis.speak(u);
+    /* iOS Safari sometimes wedges speech after camera/audio use: clear it, wake it, and retry once if it never starts */
+    let started=false;u.onstart=()=>{started=true;};
+    try{if(speechSynthesis.speaking||speechSynthesis.pending||speechSynthesis.paused)speechSynthesis.cancel();speechSynthesis.resume();}catch(e){}
+    setTimeout(()=>{
+      try{speechSynthesis.speak(u);}catch(e){}
+      setTimeout(()=>{
+        if(started||SQ.cur!==it)return;
+        try{speechSynthesis.cancel();speechSynthesis.resume();const u2=new SpeechSynthesisUtterance(it.txt);u2.lang=u.lang;if(u.voice)u2.voice=u.voice;u2.rate=1;u2.onend=fin;u2.onerror=fin;it.u=u2;speechSynthesis.speak(u2);}catch(e){}
+      },1500);
+    },60);
   }catch(e){tm=setTimeout(fin,300);}
 }
 swSay=function(txt,cb,urgent){
@@ -40,3 +49,8 @@ hmBounds=function(H){
   if(y1-y0<70){const c=(y0+y1)/2;y0=c-35;y1=c+35;}
   return{x0:x0,x1:x1,y0:y0,y1:y1};
 };
+
+/* the hole picture must never be squeezed by the notes under it: cap the bottom panel and let it scroll */
+(function(){const st=document.createElement('style');st.textContent='#hmov>div:last-child{max-height:44dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}#hmov #vhc{min-height:36dvh}';document.head.appendChild(st);})();
+/* voice needs a tap to unlock on iOS: unlock it on the first touch anywhere */
+document.addEventListener('touchend',function f(){try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}}catch(e){}document.removeEventListener('touchend',f);},{once:true,passive:true});
