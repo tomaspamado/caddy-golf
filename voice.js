@@ -7,22 +7,26 @@ function sqNext(){
   let tm=0;
   const fin=()=>{if(SQ.cur!==it)return;clearTimeout(tm);SQ.cur=null;SQ.busy=false;if(it.cb){try{it.cb();}catch(e){}}sqNext();};
   try{
-    const u=new SpeechSynthesisUtterance(it.txt),want=S.lang==='pt'?'pt-PT':'en-GB';u.lang=want;
-    const vs=speechSynthesis.getVoices(),nm=x=>(x.lang||'').replace('_','-').toLowerCase();
-    const v=vs.find(x=>nm(x)===want.toLowerCase())||vs.find(x=>nm(x).indexOf(S.lang==='pt'?'pt':'en')===0);
-    if(v)u.voice=v;u.rate=1;u.onend=fin;u.onerror=fin;
-    it.u=u;                                   /* keep a reference: browsers drop speech if it is garbage collected */
+    const want=S.lang==='pt'?'pt-PT':'en-GB',nm=x=>(x.lang||'').replace('_','-').toLowerCase();
+    const vs=(speechSynthesis.getVoices()||[]).filter(x=>!/siri|premium|enhanced|eloquence|novelty|bad|good|whisper|zarvox|trinoids|cellos|organ|bells/i.test(x.name||''));
+    const pref=S.lang==='pt'?/joana|catarina|helena/i:/daniel|serena|kate|samantha|karen/i;
+    const pool=vs.filter(x=>nm(x)===want.toLowerCase()).concat(vs.filter(x=>nm(x).indexOf(S.lang==='pt'?'pt':'en')===0));
+    const v=pool.find(x=>x.localService&&pref.test(x.name))||pool.find(x=>x.localService)||pool[0]||null;
+    const mk=(useV)=>{const u=new SpeechSynthesisUtterance(it.txt);u.lang=want;if(useV&&v)u.voice=v;u.rate=1;u.volume=1;u.pitch=1;u.onerror=fin;it.u=u;return u;};
     tm=setTimeout(fin,4000+it.txt.length*130);
-    /* iOS Safari sometimes wedges speech after camera/audio use: clear it, wake it, and retry once if it never starts */
-    let started=false;u.onstart=()=>{started=true;};
-    try{if(speechSynthesis.speaking||speechSynthesis.pending||speechSynthesis.paused)speechSynthesis.cancel();speechSynthesis.resume();}catch(e){}
-    setTimeout(()=>{
-      try{speechSynthesis.speak(u);}catch(e){}
+    let t0=0,tries=0,curU=null;
+    const go=(useV)=>{
+      tries++;const u=mk(useV);curU=u;let started=false;u.onerror=()=>{if(curU===u)fin();};
+      u.onstart=()=>{started=true;t0=Date.now();};
+      /* an utterance that "ends" at once with no sound (a broken voice) is retried with the phone's default voice */
+      u.onend=()=>{if(curU!==u)return;if(started&&Date.now()-t0<250&&it.txt.length>15&&tries<3&&SQ.cur===it){try{speechSynthesis.cancel();}catch(e){}setTimeout(()=>go(false),80);return;}fin();};
+      try{if(speechSynthesis.speaking||speechSynthesis.pending||speechSynthesis.paused)speechSynthesis.cancel();speechSynthesis.resume();}catch(e){}
       setTimeout(()=>{
-        if(started||SQ.cur!==it)return;
-        try{speechSynthesis.cancel();speechSynthesis.resume();const u2=new SpeechSynthesisUtterance(it.txt);u2.lang=u.lang;if(u.voice)u2.voice=u.voice;u2.rate=1;u2.onend=fin;u2.onerror=fin;it.u=u2;speechSynthesis.speak(u2);}catch(e){}
-      },1500);
-    },60);
+        try{speechSynthesis.speak(u);}catch(e){}
+        setTimeout(()=>{if(curU===u&&!started&&SQ.cur===it&&tries<3){try{speechSynthesis.cancel();}catch(e){}go(false);}},1500);
+      },60);
+    };
+    go(true);
   }catch(e){tm=setTimeout(fin,300);}
 }
 swSay=function(txt,cb,urgent){
