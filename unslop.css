@@ -1,0 +1,82 @@
+/* unslop pass for Caddy (design direction: calm, exact, outdoor-readable; yardage-book numerals; green is the one accent).
+   Loaded after the inline styles in index.html, so it only overrides. */
+:root{--ink:#171717;--mut:#525252;--mut2:#737373;--line:rgba(23,23,23,.1);--soft:#f4f4f2;--acc:#15803d;--accd:#0f6b32;--warn:#7a4e12;--bad:#b42318;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--ease:cubic-bezier(.22,1,.36,1)}
+body{font-variant-numeric:tabular-nums}
+b,strong{font-weight:600}
+.ic{width:1em;height:1em;vertical-align:-.14em;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.f{fill:currentColor;stroke:none}
+.ic.sd{width:.6em;height:.6em;vertical-align:.02em;border-radius:2px;display:inline-block;background:#e3c26a;stroke:none}
+
+/* spacing + labels */
+.lbl,.det h4,.sc.hd,.brow.h{text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;color:var(--mut2)}
+h4.lbl{margin:16px 0 8px}
+.alt{padding:8px 0;border-bottom:1px solid var(--line)}
+.shot,.sc{border-bottom:1px solid var(--line)}
+.sc{padding:8px 4px;font-weight:400}
+.hint{padding:12px 16px;border-radius:12px;background:var(--soft);color:var(--mut)}
+.hz,.aim{border-radius:12px;padding:8px 12px;font-weight:500;margin-top:8px}
+.aim{background:#f6f1e6;color:var(--warn)}
+.hz{background:#f9eeed;color:#8c2a22}
+.hz div{margin-top:4px}
+.hzx{font-weight:500}
+.ohead{padding:16px 16px 8px}.ohead h2{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.tabs{gap:4px;padding:4px 16px 12px}
+.tabs button{border-radius:10px;font-weight:500;font-size:14px;color:var(--mut)}
+.tabs button.on{background:var(--ink);color:#fff}
+.obody{padding-top:4px}
+
+/* chrome: radius by size, quiet depth */
+#sheet{border-radius:20px 20px 0 0;box-shadow:0 -1px 0 var(--line),0 -12px 32px rgba(0,0,0,.1);padding:8px 16px calc(env(safe-area-inset-bottom) + 16px)}
+#grab{background:rgba(23,23,23,.14)}
+.pill{border-radius:12px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.14)}
+.fab{border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.14);color:var(--ink)}
+.fab .ic{width:22px;height:22px;stroke-width:1.75}
+.x{border-radius:12px;background:var(--soft);color:var(--ink)}
+.x .ic{width:20px;height:20px}
+.cond,.sec,.seg button,.stepper button,.pick,.cta,.link,.tabs button,.x,.fab,.pill{transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),transform .15s var(--ease)}
+.cond:active,.sec:active,.seg button:active,.stepper button:active,.pick:active,.cta:active,.tabs button:active{transform:scale(.98)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.cond{border-radius:10px;font-weight:500;background:var(--soft)}
+.cond .ic{color:var(--mut)}
+.cond.pickon{background:var(--ink);color:#fff}.cond.pickon .ic{color:#fff}
+.sec,.seg button{border:1px solid var(--line);border-radius:10px;font-weight:500}
+.sec.on,.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.seg{gap:8px}
+.cta{border-radius:12px;font-weight:600;font-size:17px;padding:16px;background:var(--acc)}
+.cta:active{background:var(--accd)}
+.link{font-weight:500;color:var(--mut)}
+.pick{border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-weight:400}
+.pick b{font-weight:500}
+.pick.on{border-color:var(--acc);background:#f1f8f3}
+.pick em{border-radius:6px;font-weight:500;font-size:12px;padding:2px 6px;background:var(--acc)}
+.stepper button{border:1px solid var(--line);border-radius:12px;font-weight:500}
+.stepper .v{font-weight:500;font-family:var(--mono);font-size:24px}
+.stepper button.scorebtn{font-weight:500;font-family:var(--mono);font-size:40px;border:0}
+input[type=text],input[type=number]{border:1px solid var(--line);border-radius:10px;padding:12px;font-weight:400}
+.brow{grid-template-columns:minmax(72px,1.4fr) 1fr 1fr 28px 40px}
+.brow input{padding:8px 4px;text-align:center}
+.brow input:first-child{text-align:left;padding-left:8px}
+.stat{background:var(--soft);border-radius:12px;padding:12px}
+.hcard{border:1px solid var(--line);border-radius:14px}
+.hcard.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc);background:#f6faf7}
+.hn{font-weight:500}
+.lv{border-radius:6px;font-weight:500;padding:2px 6px}
+.tick{border-radius:8px;box-shadow:none}
+.scv{font-weight:500}
+
+/* the one bright moment: club + distance readout */
+.club,.clubbtn{font-weight:600;letter-spacing:-.02em}
+.dist{font-family:var(--mono);font-weight:500;letter-spacing:-.03em}
+.dist small{font-family:inherit;font-weight:400;color:var(--mut2)}
+.plays{font-weight:400;color:var(--mut)}
+.big-msg,.vhtitle{font-weight:600;letter-spacing:-.01em}
+.why{color:var(--mut)}
+.alt b{font-weight:500}
+
+/* map labels and markers */
+.tag{font-family:var(--mono);font-weight:500;font-size:12px;border-radius:8px;padding:2px 8px;box-shadow:0 1px 2px rgba(0,0,0,.2),0 2px 8px rgba(0,0,0,.25)}
+.pn{color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+.pn .ic{width:28px;height:28px;fill:var(--acc);stroke:#fff;stroke-width:1.6}
+.hzm{border-width:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
