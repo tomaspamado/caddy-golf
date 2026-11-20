@@ -1,7 +1,7 @@
 "use strict";
 /* ============ Virtual range (Play → Range view) + unfinished range rounds are kept ============ */
 (function(){
-  const VR={club:'all',last:false};
+  const VR={club:'all',last:false,all:false,undo:null};
   const COLS=['#fde047','#60a5fa','#f472b6','#fb923c','#c084fc','#67e8f9','#fca5a5','#bef264','#ffffff','#a5b4fc'];
   const dayK=t=>new Date(t).toDateString();
   const lastDay=()=>{let m=0;(S.shots||[]).forEach(s=>{if(s.carry>0&&isFullShot(s)&&s.t>m)m=s.t;});return m?dayK(m):null;};
@@ -81,6 +81,21 @@
     return '<div class="shot"><span>'+label+'</span><span><span class="sub">'+f(a)+' → </span><b>'+f(b)+'</b> <span style="color:'+col+';font-weight:500">'+word+'</span></span></div>';
   }
 
+  /* every shot that counts for this club, newest first, each one removable */
+  function listHTML(c,A){
+    const u=ul(),n=A.length,m=mean(A.map(s=>s.carry)),sc=sdv(A.map(s=>s.carry)),ll=A.filter(s=>s.lat!=null),ml=ll.length?mean(ll.map(s=>s.lat)):0,sl=sdv(ll.map(s=>s.lat));
+    const odd=s=>n>=8&&((sc>0&&Math.abs(s.carry-m)>2*sc)||(s.lat!=null&&sl>0&&Math.abs(s.lat-ml)>2*sl));
+    const lim=VR.all?n:40,rows=A.map(s=>({s:s,i:S.shots.indexOf(s)})).reverse().slice(0,lim);
+    let h='<div class="lbl" style="margin:20px 0 6px">'+T('Shots counted','Tacadas contadas')+' · '+n+'</div><div class="sub" style="font-size:13px;margin:0 0 8px">'+T('Delete any shot that should not count. The ovals and the caddy update straight away.','Apaga as tacadas que não devem contar. Os ovais e o caddie atualizam logo.')+'</div>';
+    if(VR.undo)h+='<div class="aim" style="display:flex;justify-content:space-between;align-items:center;background:var(--soft);color:var(--ink)"><span>'+T('Shot deleted','Tacada apagada')+'</span><button class="link" data-vr="undo" style="color:var(--accd)">'+T('Undo','Anular')+'</button></div>';
+    h+=rows.map(r=>{
+      const s=r.s,d=new Date(s.t),side=s.lat==null?'–':(Math.abs(s.lat)<0.5?T('on line','na linha'):d1(Math.abs(s.lat))+' '+u+' '+(s.lat<0?T('left','esq.'):T('right','dir.')));
+      return '<div class="shot" style="align-items:center;gap:8px"><span><b>'+d1(s.carry)+' '+u+'</b><br><small class="sub">'+dl(s.t)+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(odd(s)?' · '+T('far from your average','longe da tua média'):'')+'</small></span><span class="sub" style="margin-left:auto;text-align:right">'+side+'</span><button class="x" data-vr="del" data-i="'+r.i+'" aria-label="'+T('Delete shot','Apagar tacada')+'">✕</button></div>';
+    }).join('');
+    if(n>lim)h+='<button class="sec" data-vr="more" style="width:100%;margin-top:8px">'+T('Show all {0} shots','Ver as {0} tacadas').replace('{0}',n)+'</button>';
+    return h;
+  }
+
   function vrHTML(){
     const u=ul(),clubs=S.clubs.filter(c=>c.on&&sh(c.id).length);
     if(!clubs.length)return '<div class="hint">'+T('No shots yet. Hit some balls in Play (at the range or at home) and your spread shows up here.','Ainda sem tacadas. Bate umas bolas em Jogar (no range ou em casa) e a tua dispersão aparece aqui.')+'</div>';
@@ -90,10 +105,10 @@
     let ells=[],dots=[],maxM=100,body='',cap='';
     if(VR.club==='all'){
       clubs.forEach((c,i)=>{const a=sh(c.id).slice(-20),s=st(a);maxM=Math.max(maxM,s.my+1.28*s.sy);
-        if(a.length>=3)ells.push({mx:s.mx,my:s.my,sx:Math.max(1,s.sx),sy:Math.max(1,s.sy),col:COLS[i%COLS.length],lab:esc(tc(c.name))});});
-      body=clubs.map(c=>{const A=sh(c.id),now=st(A.slice(-10)),bf=A.length>10?st(A.slice(-20,-10)):null;
-        return '<div class="shot"><span><b>'+esc(tc(c.name))+'</b><br><small class="sub">'+A.length+' '+T('shots','tacadas')+'</small></span><span style="text-align:right"><b>'+d1(now.my)+'</b> '+u+'<br><small class="sub">±'+d1(now.sx)+' '+T('sideways','lado')+(bf&&bf.n>=3&&now.n>=3?' · '+(now.sx<bf.sx*0.96?T('tighter','mais junto'):now.sx>bf.sx*1.04?T('wider','mais aberto'):T('same','igual')):'')+'</small></span></div>';}).join('');
-      cap=T('Each oval holds about 80% of your last 20 shots with that club.','Cada oval contém cerca de 80% das últimas 20 tacadas com esse taco.');
+        if(a.length>=3)ells.push({mx:s.mx,my:s.my,sx:Math.max(1,s.sx),sy:Math.max(1,s.sy),col:COLS[i%COLS.length]});});
+      body=clubs.map((c,ci)=>{const A=sh(c.id),now=st(A.slice(-10)),bf=A.length>10?st(A.slice(-20,-10)):null;
+        return '<div class="shot" data-vr="club" data-v="'+c.id+'" style="cursor:pointer;min-height:56px;align-items:center"><span><b><i style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25);background:'+COLS[ci%COLS.length]+'"></i>'+esc(tc(c.name))+'</b><br><small class="sub">'+A.length+' '+T('shots','tacadas')+'</small></span><span style="text-align:right"><b>'+d1(now.my)+'</b> '+u+'<br><small class="sub">±'+d1(now.sx)+' '+T('sideways','lado')+(bf&&bf.n>=3&&now.n>=3?' · '+(now.sx<bf.sx*0.96?T('tighter','mais junto'):now.sx>bf.sx*1.04?T('wider','mais aberto'):T('same','igual')):'')+'</small></span></div>';}).join('');
+      cap=T('Each oval holds about 80% of your last 20 shots with that club. Match the colour to the list below, or tap a club to see its shots.','Cada oval contém cerca de 80% das últimas 20 tacadas com esse taco. Liga a cor à lista abaixo ou toca num taco para ver as tacadas.');
     }else{
       const c=clubs.find(x=>x.id===VR.club),A=sh(c.id),L=A.slice(-10),P=A.slice(-20,-10),sn=st(L),sp=P.length?st(P):null,col='#fde047';
       L.forEach(s=>dots.push({x:s.lat||0,y:s.carry,col:col}));P.forEach(s=>dots.push({x:s.lat||0,y:s.carry,old:1}));
@@ -110,6 +125,7 @@
         (ses.length>=2?chart(T('Average carry per session','Voo médio por sessão'),ses.map(x=>mean(x.a.map(s=>s.carry))*U()),ses.map(x=>dl(x.t)),v=>String(Math.round(v)),u):'')+
         (ses.length>=2&&ses.every(x=>x.a.filter(s=>s.lat!=null).length>=2)?chart(T('Left-right spread per session','Dispersão lateral por sessão'),ses.map(x=>sdv(x.a.filter(s=>s.lat!=null).map(s=>s.lat))*U()),ses.map(x=>dl(x.t)),v=>'±'+Math.round(v),T('Lower is tighter.','Mais baixo é mais junto.')):'')+
         (ses.length<2?'<div class="sub" style="margin:8px 0">'+T('Hit at least 2 shots on two different days to see your progression over time.','Bate pelo menos 2 tacadas em dois dias diferentes para ver a evolução ao longo do tempo.')+'</div>':'');
+      body+=listHTML(c,A);
       cap=T('Solid yellow: your last 10 shots. Dashed grey: the 10 before.','Amarelo: as últimas 10 tacadas. Cinzento tracejado: as 10 anteriores.');
     }
     const p=pic(ells,dots,maxM);
@@ -134,7 +150,19 @@
   openPanel=function(t){_op.apply(this,arguments);try{if(ptab==='play'&&PL.sub==='vr'&&!PL.on)setTimeout(vrRender,0);}catch(e){}};
   const _dl=dlRender;
   dlRender=function(){const r=_dl.apply(this,arguments);try{if(ptab==='play'&&PL.sub==='vr'&&!PL.on)vrRender();}catch(e){}return r;};
-  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="club"]');if(!b)return;VR.club=b.dataset.v;vrRender();});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="club"]');if(!b)return;VR.club=b.dataset.v;VR.all=false;VR.undo=null;vrRender();});
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="when"]');if(!b)return;VR.last=b.dataset.v==='last';vrRender();});
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-vr="del"],[data-vr="undo"],[data-vr="more"]');if(!b)return;
+    const a=b.dataset.vr;
+    if(a==='more'){VR.all=true;vrRender();return;}
+    if(a==='undo'){const u=VR.undo;if(!u)return;S.shots.splice(Math.min(u.i,S.shots.length),0,u.s);if(u.r)S.rlog.splice(Math.min(u.ri,S.rlog.length),0,u.r);VR.undo=null;save();vrRender();try{refresh();}catch(_){}return;}
+    const i=Number(b.dataset.i),s=S.shots[i];if(!s)return;
+    let ri=-1,best=1e9;
+    (S.rlog||[]).forEach((r,k)=>{if(r.club!==s.club)return;const dt=Math.abs((r.t||0)-(s.t||0)),dd=Math.abs((r.d!=null?r.d:r.carry)-s.carry);if(dt<10000&&dd<2&&dt+dd*1000<best){best=dt+dd*1000;ri=k;}});
+    VR.undo={s:s,i:i,r:ri>=0?S.rlog[ri]:null,ri:ri};
+    S.shots.splice(i,1);if(ri>=0)S.rlog.splice(ri,1);
+    save();vrRender();try{refresh();}catch(_){}
+  });
   window.__vr={VR,vrHTML,saveUnfinished};
 })();
