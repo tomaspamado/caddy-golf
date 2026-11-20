@@ -3,16 +3,16 @@
    and fed into the same hazard system as the hand-drawn ⚠ hazards (club advice, trouble %, distances). ============ */
 (function(){
   const bT=(e,p)=>S.lang==='pt'?p:e;
-  const KEY='caddy_bn1',RAD=2500,REF=1200,MAXD_NO_TARGET=220,CORR=40,MAXH=10;
+  const KEY='caddy_bn2',RAD=2500,REF=1200,MAXD_NO_TARGET=220,CORR=40,MAXH=10;
   const BN={items:{},cs:[],st:'idle',last:0,busy:false,drawKey:''};
   try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.items&&j.cs){BN.items=j.items;BN.cs=j.cs;BN.st=Object.keys(j.items).length?'ok':'none';}}catch(e){}
   function persist(){try{localStorage.setItem(KEY,JSON.stringify({items:BN.items,cs:BN.cs}));}catch(e){}}
 
   /* ---------- fetch ---------- */
-  const EP=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+  const EP=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
   function query(c){
     const a='(around:'+RAD+','+c.lat.toFixed(5)+','+c.lng.toFixed(5)+')';
-    return '[out:json][timeout:25];(way["golf"="bunker"]'+a+';way["golf"="water_hazard"]'+a+';way["golf"="lateral_water_hazard"]'+a+';);out geom;';
+    return '[out:json][timeout:25];(nwr["golf"="bunker"]'+a+';nwr["golf"="water_hazard"]'+a+';nwr["golf"="lateral_water_hazard"]'+a+';nwr["natural"="sand"]["golf"]'+a+';);out geom;';
   }
   async function get(q){
     let err;
@@ -29,9 +29,10 @@
   function parse(j){
     const out={};
     (j.elements||[]).forEach(el=>{
-      if(el.type!=='way'||!el.geometry||el.geometry.length<3||!el.tags)return;
-      const g=el.tags.golf,k=g==='bunker'?'b':'w';
-      out[el.id]={k:k,p:el.geometry.map(p=>[+p.lat.toFixed(6),+p.lon.toFixed(6)])};
+      if(!el.tags)return;
+      const g=el.tags.golf,k=(g==='bunker'||el.tags.natural==='sand')?'b':'w';
+      if(el.type==='way'&&el.geometry&&el.geometry.length>=3)out[el.id]={k:k,p:el.geometry.map(p=>[+p.lat.toFixed(6),+p.lon.toFixed(6)])};
+      else if(el.type==='relation'&&el.members)el.members.forEach((m,i)=>{if(m.type==='way'&&m.role!=='inner'&&m.geometry&&m.geometry.length>=3)out[el.id+'_'+i]={k:k,p:m.geometry.map(p=>[+p.lat.toFixed(6),+p.lon.toFixed(6)])};});
     });
     return out;
   }
