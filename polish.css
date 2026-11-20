@@ -8,6 +8,7 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]),select{min-height
 #pbody{overscroll-behavior:contain}
 /* simpler app: no Data tab (stored shots are kept) */
 #ptabs button[data-p="data"]{display:none}
+#ptabs button[data-p="swing"]{display:none}
 .hz.hza{background:var(--soft);color:var(--mut);font-weight:500;font-size:14px}
 details.fold>summary,details>summary.link{min-height:44px;display:flex;align-items:center;cursor:pointer}
 details.fold>summary::-webkit-details-marker{display:none}
