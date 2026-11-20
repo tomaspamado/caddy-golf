@@ -89,7 +89,7 @@
     return '<div class="shot"><span>'+label+'</span><span><span class="sub">'+f(a)+' → </span><b>'+f(b)+'</b> <span style="color:'+col+';font-weight:500">'+word+'</span></span></div>';
   }
 
-  /* every shot that counts for this club, newest first, each one removable */
+  /* every shot that counts for this club, newest first, each one removable; mishits in red */
   function listHTML(c,A){
     const u=ul(),n=A.length,m=mean(A.map(s=>s.carry)),sc=sdv(A.map(s=>s.carry)),ll=A.filter(s=>s.lat!=null),ml=ll.length?mean(ll.map(s=>s.lat)):0,sl=sdv(ll.map(s=>s.lat));
     const odd=s=>n>=8&&((sc>0&&Math.abs(s.carry-m)>2*sc)||(s.lat!=null&&sl>0&&Math.abs(s.lat-ml)>2*sl));
@@ -98,7 +98,8 @@
     if(VR.undo)h+='<div class="aim" style="display:flex;justify-content:space-between;align-items:center;background:var(--soft);color:var(--ink)"><span>'+T('Shot deleted','Tacada apagada')+'</span><button class="link" data-vr="undo" style="color:var(--accd)">'+T('Undo','Anular')+'</button></div>';
     h+=rows.map(r=>{
       const s=r.s,d=new Date(s.t),side=s.lat==null?'–':(Math.abs(s.lat)<0.5?T('on line','na linha'):d1(Math.abs(s.lat))+' '+u+' '+(s.lat<0?T('left','esq.'):T('right','dir.')));
-      return '<div class="shot" style="align-items:center;gap:8px"><span><b>'+d1(s.carry)+' '+u+'</b><br><small class="sub">'+dl(s.t)+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(odd(s)?' · '+T('far from your average','longe da tua média'):'')+'</small></span><span class="sub" style="margin-left:auto;text-align:right">'+side+'</span><button class="x" data-vr="del" data-i="'+r.i+'" aria-label="'+T('Delete shot','Apagar tacada')+'">✕</button></div>';
+      const bad=odd(s);
+      return '<div class="shot" style="align-items:center;gap:8px'+(bad?';background:#fdecea;border-radius:10px;padding-left:8px;padding-right:8px;color:#b42318':'')+'"><span><b>'+(bad?'<i style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #f87171;margin-right:6px"></i>':'')+d1(s.carry)+' '+u+'</b><br><small class="sub"'+(bad?' style="color:#b42318"':'')+'>'+dl(s.t)+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(bad?' · '+T('mishit, not in the ovals','má tacada, fora dos ovais'):'')+'</small></span><span class="sub" style="margin-left:auto;text-align:right'+(bad?';color:#b42318':'')+'">'+side+'</span><button class="x" data-vr="del" data-i="'+r.i+'" aria-label="'+T('Delete shot','Apagar tacada')+'">✕</button></div>';
     }).join('');
     if(n>lim)h+='<button class="sec" data-vr="more" style="width:100%;margin-top:8px">'+T('Show all {0} shots','Ver as {0} tacadas').replace('{0}',n)+'</button>';
     return h;
