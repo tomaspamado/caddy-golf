@@ -1,25 +1,15 @@
-// Caddy service worker. Bump VER when shipping; index.html is network-first so it is never stale online.
-const VER='caddy-v2';
-const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg',
- 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js','https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'];
-self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(VER).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()));
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==VER).map(n=>caches.delete(n)))).then(()=>self.clients.claim()));
-});
+const VER='caddy-v3';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==VER).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});
+/* network first (3 s), cache as fallback: updates show on the next open, still works offline */
 self.addEventListener('fetch',e=>{
-  const r=e.request;
-  if(r.method!=='GET')return;
+  const r=e.request;if(r.method!=='GET')return;
   const u=new URL(r.url);
-  const own=u.origin===self.location.origin;
-  if(own||u.hostname==='unpkg.com'||u.hostname==='cdn.jsdelivr.net'||u.hostname==='storage.googleapis.com'){
-    const shell=r.mode==='navigate'||(own&&/(\/|index\.html|sw\.js)$/.test(u.pathname));
-    if(shell){ // network first, cache fallback
-      e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(VER).then(c=>c.put(r,cp));}return res;})
-        .catch(()=>caches.match(r,{ignoreSearch:true}).then(m=>m||caches.match('./index.html'))));
-    }else{ // cache first
-      e.respondWith(caches.match(r).then(m=>m||fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(VER).then(c=>c.put(r,cp));}return res;})));
-    }
-  }
+  if(u.origin!==location.origin&&!/unpkg\.com/.test(u.hostname))return;
+  e.respondWith((async()=>{
+    const c=await caches.open(VER);
+    const net=fetch(r).then(res=>{if(res&&res.ok)c.put(r,res.clone());return res;});
+    try{return await Promise.race([net,new Promise((_,j)=>setTimeout(j,3000))]);}
+    catch(_){const m=await c.match(r);if(m)return m;return net;}
+  })());
 });
