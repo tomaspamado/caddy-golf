@@ -55,6 +55,7 @@
   hcHTML=function(){
     let h=_hc.apply(this,arguments);
     try{
+      h=h.replace(/ · card (\d+)/g,function(m,n){return ' · '+T('card','cartão')+' '+n;});
       const mk='<button class="pick" data-hc="edit"',i=h.indexOf('<div style="margin-top:8px">'+mk);
       if(i>0){
         const pre=h.slice(0,i),body=h.slice(i+'<div style="margin-top:8px">'.length),items=body.split(mk);items.shift();
