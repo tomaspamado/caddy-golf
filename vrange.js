@@ -8,6 +8,9 @@
   const sh=id=>{const a=(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));if(!VR.last)return a;const k=lastDay();return a.filter(s=>dayK(s.t)===k);};
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
+  /* mishits: with 8+ shots, anything beyond 2 standard deviations (distance or sideways) stays out of the ovals */
+  const isOut=(s,A)=>{if(A.length<8)return false;const m=mean(A.map(x=>x.carry)),sc=sdv(A.map(x=>x.carry)),ll=A.filter(x=>x.lat!=null),ml=ll.length?mean(ll.map(x=>x.lat)):0,sl=sdv(ll.map(x=>x.lat));return(sc>0&&Math.abs(s.carry-m)>2*sc)||(s.lat!=null&&sl>0&&Math.abs(s.lat-ml)>2*sl);};
+  const trim=A=>A.filter(s=>!isOut(s,A));
   function st(a){
     if(!a.length)return null;
     const ll=a.filter(s=>s.lat!=null);
@@ -56,7 +59,7 @@
       placed.push({x:o.x,y:y});
       g+='<text x="'+o.x+'" y="'+y+'" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" style="paint-order:stroke;stroke:#0b1f12;stroke-width:3px">'+o.e.lab+'</text>';
     });
-    dots.forEach(d=>{g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="'+(d.old?2.5:3.5)+'" fill="'+(d.old?'none':d.col)+'" stroke="'+(d.old?'#e5e7eb':'#0b1f12')+'" stroke-width="'+(d.old?1:1.2)+'"/>';});
+    dots.forEach(d=>{if(d.out){g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="4" fill="none" stroke="#f87171" stroke-width="1.8"/>';return;}g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="'+(d.old?2.5:3.5)+'" fill="'+(d.old?'none':d.col)+'" stroke="'+(d.old?'#e5e7eb':'#0b1f12')+'" stroke-width="'+(d.old?1:1.2)+'"/>';});
     return{svg:'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;border-radius:12px" role="img" aria-label="'+T('Virtual range','Range virtual')+'">'+g+'</svg>',ratio:SX/sy};
   }
 
@@ -109,14 +112,14 @@
     const chips=when+'<div class="chiprow"><button class="cond'+(VR.club==='all'?' pickon':'')+'" data-vr="club" data-v="all">'+T('All clubs','Todos')+'</button>'+clubs.map(c=>'<button class="cond'+(c.id===VR.club?' pickon':'')+'" data-vr="club" data-v="'+c.id+'">'+esc(tc(c.name))+'</button>').join('')+'</div>';
     let ells=[],dots=[],maxM=100,body='',cap='';
     if(VR.club==='all'){
-      clubs.forEach((c,i)=>{const a=sh(c.id).slice(-20),s=st(a);maxM=Math.max(maxM,s.my+1.28*s.sy);
+      clubs.forEach((c,i)=>{const a=trim(sh(c.id)).slice(-20),s=st(a);maxM=Math.max(maxM,s.my+1.28*s.sy);
         if(a.length>=3)ells.push({mx:s.mx,my:s.my,sx:Math.max(1,s.sx),sy:Math.max(1,s.sy),col:COLS[i%COLS.length],lab:esc(tc(c.name))});});
-      body=clubs.map((c,ci)=>{const A=sh(c.id),now=st(A.slice(-10)),bf=A.length>10?st(A.slice(-20,-10)):null;
+      body=clubs.map((c,ci)=>{const A=trim(sh(c.id)),now=st(A.slice(-10)),bf=A.length>10?st(A.slice(-20,-10)):null;
         return '<div class="shot" data-vr="club" data-v="'+c.id+'" style="cursor:pointer;min-height:56px;align-items:center"><span><b><i style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25);background:'+COLS[ci%COLS.length]+'"></i>'+esc(tc(c.name))+'</b><br><small class="sub">'+A.length+' '+T('shots','tacadas')+'</small></span><span style="text-align:right"><b>'+d1(now.my)+'</b> '+u+'<br><small class="sub">±'+d1(now.sx)+' '+T('sideways','lado')+(bf&&bf.n>=3&&now.n>=3?' · '+(now.sx<bf.sx*0.96?T('tighter','mais junto'):now.sx>bf.sx*1.04?T('wider','mais aberto'):T('same','igual')):'')+'</small></span></div>';}).join('');
       cap=T('Each oval holds about 80% of your last 20 shots with that club. Match the colour to the list below, or tap a club to see its shots.','Cada oval contém cerca de 80% das últimas 20 tacadas com esse taco. Liga a cor à lista abaixo ou toca num taco para ver as tacadas.');
     }else{
-      const c=clubs.find(x=>x.id===VR.club),A=sh(c.id),L=A.slice(-10),P=A.slice(-20,-10),sn=st(L),sp=P.length?st(P):null,col='#fde047';
-      L.forEach(s=>dots.push({x:s.lat||0,y:s.carry,col:col}));P.forEach(s=>dots.push({x:s.lat||0,y:s.carry,old:1}));
+      const c=clubs.find(x=>x.id===VR.club),AA=sh(c.id),A=trim(AA),L=A.slice(-10),P=A.slice(-20,-10),sn=st(L),sp=P.length?st(P):null,col='#fde047';
+      AA.slice(-25).forEach(s=>{if(isOut(s,AA))dots.push({x:s.lat||0,y:s.carry,out:1});});L.forEach(s=>dots.push({x:s.lat||0,y:s.carry,col:col}));P.forEach(s=>dots.push({x:s.lat||0,y:s.carry,old:1}));
       if(L.length>=3)ells.push({mx:sn.mx,my:sn.my,sx:Math.max(1,sn.sx),sy:Math.max(1,sn.sy),col:col});
       if(P.length>=3)ells.unshift({mx:sp.mx,my:sp.my,sx:Math.max(1,sp.sx),sy:Math.max(1,sp.sy),col:'#e5e7eb',old:1});
       maxM=Math.max(maxM,sn.my+1.28*sn.sy,sp?sp.my+1.28*sp.sy:0);
@@ -130,8 +133,8 @@
         (ses.length>=2?chart(T('Average carry per session','Voo médio por sessão'),ses.map(x=>mean(x.a.map(s=>s.carry))*U()),ses.map(x=>dl(x.t)),v=>String(Math.round(v)),u):'')+
         (ses.length>=2&&ses.every(x=>x.a.filter(s=>s.lat!=null).length>=2)?chart(T('Left-right spread per session','Dispersão lateral por sessão'),ses.map(x=>sdv(x.a.filter(s=>s.lat!=null).map(s=>s.lat))*U()),ses.map(x=>dl(x.t)),v=>'±'+Math.round(v),T('Lower is tighter.','Mais baixo é mais junto.')):'')+
         (ses.length<2?'<div class="sub" style="margin:8px 0">'+T('Hit at least 2 shots on two different days to see your progression over time.','Bate pelo menos 2 tacadas em dois dias diferentes para ver a evolução ao longo do tempo.')+'</div>':'');
-      body+=listHTML(c,A);
-      cap=T('Solid yellow: your last 10 shots. Dashed grey: the 10 before.','Amarelo: as últimas 10 tacadas. Cinzento tracejado: as 10 anteriores.');
+      body+=listHTML(c,AA);
+      cap=T('Solid yellow: your last 10 shots. Dashed grey: the 10 before. Red rings are mishits, left out of the ovals.','Amarelo: as últimas 10 tacadas. Cinzento tracejado: as 10 anteriores. Anéis vermelhos são más tacadas, fora dos ovais.');
     }
     const p=pic(ells,dots,maxM);
     return chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div>'+body;
