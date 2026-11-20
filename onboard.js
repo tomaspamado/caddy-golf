@@ -1,5 +1,5 @@
 "use strict";
-/* onboard: four-step first-run flow (welcome, 7 iron, quick choices, location). Replaces the old one-question welcome card. */
+/* onboard: first-run flow (welcome, 7 iron, quick choices, location, a five-screen tour). Replaces the old one-question welcome card. */
 (function(){
   const st=document.createElement('style');
   st.textContent='#ob{position:fixed;inset:0;z-index:3000;background:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 16px);overflow-y:auto}'+
@@ -17,6 +17,29 @@
   const seg=(g,opts,cur)=>'<div class="seg" style="margin:0 0 16px">'+opts.map(o=>'<button class="'+(o[0]===cur?'on':'')+'" data-ob="set" data-g="'+g+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
   const row=(ic,a,b)=>'<div class="orow"><div class="oic">'+ic+'</div><div><b>'+a+'</b><span>'+b+'</span></div></div>';
   const dots=n=>'<div class="dots">'+(n>3?'':[0,1,2,3].map(i=>'<i class="'+(i===n?'on':'')+'"></i>').join(''))+'</div>';
+
+  /* the tour: one screen per part of the app (steps 4 to 8) */
+  const TOUR=()=>[
+    {ic:'⌖',t:T('Caddy: the map','Caddy: o mapa'),s:T('Your main screen on the course.','O teu ecrã principal no campo.'),r:[
+      ['⛳',T('Club and distance','Taco e distância'),T('The card at the bottom names the club and the distance it plays, with wind and slope included.','O cartão em baixo indica o taco e a distância que joga, com vento e declive.')],
+      ['◎',T('Set the pin and target','Pin e alvo'),T('Tap the map to place them. Hazards you mark change the advice.','Toca no mapa para os colocar. Os obstáculos que marcas mudam o conselho.')],
+      ['▤',T('Front, middle, back','Frente, meio, fundo'),T('Green distances show at the top when the course is mapped, and the hole advances by itself.','As distâncias ao green aparecem em cima se o campo estiver mapeado, e o buraco avança sozinho.')]]},
+    {ic:'⛳',t:T('Play','Jogar'),s:T('Practice with or without the course.','Treina com ou sem o campo.'),r:[
+      ['●',T('Range (real ball)','Range (bola real)'),T('Enter the carry and the miss after each shot. Every shot feeds your numbers.','Indica o voo e o desvio depois de cada tacada. Cada tacada alimenta os teus números.')],
+      ['⌂',T('Home (no ball)','Casa (sem bola)'),T('Swing indoors and the camera plays the shot.','Roda em casa e a câmara joga a tacada.')],
+      ['◐',T('Courses and practice','Campos e treino'),T('Filter by Easy, Medium or Tough, or take a random practice hole.','Filtra por Fácil, Médio ou Difícil, ou apanha um buraco de treino aleatório.')]]},
+    {ic:'◉',t:T('Range view','Vista range'),s:T('See how your shots spread.','Vê como se espalham as tuas tacadas.'),r:[
+      ['◯',T('One oval per club','Um oval por taco'),T('It holds about 80% of your recent shots. Tap a club to open its shots.','Contém cerca de 80% das tacadas recentes. Toca num taco para ver as tacadas.')],
+      ['✕',T('Delete bad shots','Apaga tacadas más'),T('Remove any shot that should not count. Mishits show as red rings and stay out of the ovals.','Remove as tacadas que não devem contar. As más tacadas ficam em anéis vermelhos, fora dos ovais.')],
+      ['↻',T('Last session','Última sessão'),T('Switch between all time and your latest day.','Alterna entre sempre e o teu último dia.')]]},
+    {ic:'☰',t:T('Scorecard and handicap','Cartão e handicap'),s:T('Under More, Round.','Em Mais, Volta.'),r:[
+      ['✎',T('Score as you go','Regista ao jogar'),T('Start a round, tap the score for each hole. Turn on putts in Settings for more.','Começa uma volta e toca no resultado de cada buraco. Liga os putts nas Definições para mais.')],
+      ['↘',T('Handicap and putting','Handicap e putting'),T('After a few rounds you get an index, putts per hole and three-putt rate.','Depois de algumas voltas vês o índice, os putts por buraco e os 3 putts.')]]},
+    {ic:'⚙',t:T('Bag and Settings','Saco e Definições'),s:T('Under More.','Em Mais.'),r:[
+      ['⌬',T('Your bag','O teu saco'),T('Set each club\'s carry. It sharpens as you hit shots.','Define o voo de cada taco. Fica mais certo à medida que bates.')],
+      ['⎘',T('Backup','Cópia de segurança'),T('Copy a backup now and then. Your data lives only on this phone.','Copia uma cópia de vez em quando. Os dados vivem só neste telemóvel.')],
+      ['＋',T('Add to Home Screen','Adicionar ao Ecrã principal'),T('In Safari tap Share, then Add to Home Screen. It opens like an app and keeps your data safe.','No Safari toca em Partilhar e Adicionar ao Ecrã principal. Abre como uma app e protege os dados.')]]}
+  ];
 
   function render(){
     const n=O.step;let h=dots(n);
@@ -43,6 +66,10 @@
         row('✓',T('Private by design','Privado por defeito'),T('No account, no sign-in, nothing uploaded.','Sem conta, sem login, nada é enviado.'))+
         row('✓',T('Works on the course','Funciona no campo'),T('Distances and advice need no signal once the map has loaded.','Distâncias e conselhos não precisam de rede depois de o mapa carregar.'))+
         '<div class="foot"><button class="cta" data-ob="allow">'+T('Allow location','Permitir localização')+'</button><button class="link" data-ob="later">'+T('Not now','Agora não')+'</button></div>';
+    }else if(n>=4&&n<=8){
+      const P=TOUR(),p=P[n-4];
+      h+='<div class="dots">'+P.map((x,i)=>'<i class="'+(i===n-4?'on':'')+'"></i>').join('')+'</div><div class="big" style="margin-top:6px">'+p.ic+'</div><h1 style="text-align:center">'+p.t+'</h1><p class="sub center">'+p.s+'</p>'+p.r.map(r=>row(r[0],r[1],r[2])).join('')+
+        '<div class="foot"><button class="cta" data-ob="next">'+(n===8?T('Finish','Concluir'):T('Next','Seguinte'))+'</button>'+(n<8?'<button class="link" data-ob="endtour">'+T('Skip the tour','Saltar a visita')+'</button>':'')+'</div>';
     }else{
       h+='<div class="big">✓</div><h1 style="text-align:center">'+T("You're set","Está tudo pronto")+'</h1><p class="sub center">'+(O.c7?T('Your 7 iron carries ','O teu ferro 7 faz ')+O.c7+' '+(O.unit==='m'?'m':'yd')+'. ':'')+T('Start a round or hit some balls at the range.','Começa uma volta ou bate umas bolas no range.')+'</p>'+
         '<div class="foot"><button class="cta" data-ob="round">'+T('Start a round','Começar uma volta')+'</button><button class="link" data-ob="range">'+T('Go to the range','Ir para o range')+'</button></div>';
@@ -77,7 +104,7 @@
   document.addEventListener('click',e=>{
     const b=e.target.closest('#ob [data-ob]');if(!b||!O)return;
     const a=b.dataset.ob;
-    if(a==='next'){O.step++;render();}
+    if(a==='next'){O.step=O.step>=8?9:O.step+1;render();}
     else if(a==='set'){
       const g=b.dataset.g,v=b.dataset.v;
       if(g==='unit'){const el=document.getElementById('obc7');if(el)O.c7=el.value;O.unit=v;render();}
@@ -90,6 +117,7 @@
       if(!(v>=mn&&v<=mx)){document.getElementById('oberr').textContent=T('Enter a distance between '+mn+' and '+mx+', or skip.','Indica uma distância entre '+mn+' e '+mx+', ou salta.');return;}
       O.c7=String(Math.round(v));applyC7();save();O.step=2;render();
     }
+    else if(a==='endtour'){O.step=9;render();}
     else if(a==='skip7'){O.c7='';O.step=2;render();}
     else if(a==='allow'){release(true);S.setup=true;save();O.step=4;render();}
     else if(a==='later'){release(false);S.setup=true;save();O.step=4;render();}
