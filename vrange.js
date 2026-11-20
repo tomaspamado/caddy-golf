@@ -8,8 +8,13 @@
   const sh=id=>{const a=(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));if(!VR.last)return a;const k=lastDay();return a.filter(s=>dayK(s.t)===k);};
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
-  /* mishits: with 8+ shots, anything beyond 2 standard deviations (distance or sideways) stays out of the ovals */
-  const isOut=(s,A)=>{if(A.length<8)return false;const m=mean(A.map(x=>x.carry)),sc=sdv(A.map(x=>x.carry)),ll=A.filter(x=>x.lat!=null),ml=ll.length?mean(ll.map(x=>x.lat)):0,sl=sdv(ll.map(x=>x.lat));return(sc>0&&Math.abs(s.carry-m)>2*sc)||(s.lat!=null&&sl>0&&Math.abs(s.lat-ml)>2*sl);};
+  /* mishits, judged per club: a shot is a mishit when it sits more than 2.5 robust spreads from the club's median, in distance or sideways.
+     Median and MAD are used instead of average and standard deviation, so the mishits themselves cannot widen the limit and hide each other. */
+  const med=a=>{const q=[...a].sort((x,y)=>x-y),n=q.length;return n%2?q[(n-1)/2]:(q[n/2-1]+q[n/2])/2;};
+  const isOut=(s,A)=>{if(A.length<8)return false;
+    const d=A.map(x=>x.carry),md=med(d),sd=Math.max(1.4826*med(d.map(x=>Math.abs(x-md))),0.03*md),
+      l=A.filter(x=>x.lat!=null).map(x=>x.lat),ml=l.length?med(l):0,sl=Math.max(l.length?1.4826*med(l.map(x=>Math.abs(x-ml))):0,1.5);
+    return Math.abs(s.carry-md)>2.5*sd||(s.lat!=null&&Math.abs(s.lat-ml)>2.5*sl);};
   const trim=A=>A.filter(s=>!isOut(s,A));
   function st(a){
     if(!a.length)return null;
@@ -91,8 +96,8 @@
 
   /* every shot that counts for this club, newest first, each one removable; mishits in red */
   function listHTML(c,A){
-    const u=ul(),n=A.length,m=mean(A.map(s=>s.carry)),sc=sdv(A.map(s=>s.carry)),ll=A.filter(s=>s.lat!=null),ml=ll.length?mean(ll.map(s=>s.lat)):0,sl=sdv(ll.map(s=>s.lat));
-    const odd=s=>n>=8&&((sc>0&&Math.abs(s.carry-m)>2*sc)||(s.lat!=null&&sl>0&&Math.abs(s.lat-ml)>2*sl));
+    const u=ul(),n=A.length;
+    const odd=s=>isOut(s,A);
     const lim=VR.all?n:40,rows=A.map(s=>({s:s,i:S.shots.indexOf(s)})).reverse().slice(0,lim);
     let h='<div class="lbl" style="margin:20px 0 6px">'+T('Shots counted','Tacadas contadas')+' · '+n+'</div><div class="sub" style="font-size:13px;margin:0 0 8px">'+T('Delete any shot that should not count. The ovals and the caddy update straight away.','Apaga as tacadas que não devem contar. Os ovais e o caddie atualizam logo.')+'</div>';
     if(VR.undo)h+='<div class="aim" style="display:flex;justify-content:space-between;align-items:center;background:var(--soft);color:var(--ink)"><span>'+T('Shot deleted','Tacada apagada')+'</span><button class="link" data-vr="undo" style="color:var(--accd)">'+T('Undo','Anular')+'</button></div>';
