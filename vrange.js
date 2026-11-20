@@ -3,7 +3,7 @@
 (function(){
   const VR={club:'all'};
   const COLS=['#fde047','#60a5fa','#f472b6','#fb923c','#c084fc','#67e8f9','#fca5a5','#bef264','#ffffff','#a5b4fc'];
-  const sh=id=>(S.shots||[]).filter(s=>s.club===id&&s.carry>0);
+  const sh=id=>(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
   function st(a){
