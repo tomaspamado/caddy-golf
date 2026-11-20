@@ -27,6 +27,19 @@
     const v={cd:cd,cl:cl2,td:td,tl:tl};_ck={A:A,k:S.vrk||3,n:A.length,v:v};return v;};
   const isOut=(s,A)=>{if(A.length<5)return false;const q=limits(A);return Math.abs(s.carry-q.cd)>q.td||(s.lat!=null&&Math.abs(s.lat-q.cl)>q.tl);};
   const trim=A=>A.filter(s=>!isOut(s,A));
+  /* the caddy's own spread follows the same mishit limit: mishits are left out of what it learns from the range */
+  const _sp=spread;let _oc={};
+  function outsFor(id){
+    const k=id+'|'+(S.shots||[]).length+'|'+(S.vrk||3),c=_oc[k];if(c)return c;
+    if(Object.keys(_oc).length>40)_oc={};
+    const AA=(S.shots||[]).filter(x=>x.club===id&&x.carry>0&&isFullShot(x));
+    return _oc[k]=AA.filter(x=>isOut(x,AA));}
+  spread=function(club){
+    const rl=S.rlog,o=outsFor(club.id);
+    if(!o.length||!rl)return _sp.apply(this,arguments);
+    try{S.rlog=rl.filter(r=>!(r.club===club.id&&o.some(x=>Math.abs((r.t||0)-(x.t||0))<10000&&Math.abs((r.d!=null?r.d:r.carry)-x.carry)<2)));return _sp.apply(this,arguments);}
+    finally{S.rlog=rl;}
+  };
   function st(a){
     if(!a.length)return null;
     const ll=a.filter(s=>s.lat!=null);
