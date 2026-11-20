@@ -1,9 +1,11 @@
 "use strict";
 /* ============ Virtual range (Play → Range view) + unfinished range rounds are kept ============ */
 (function(){
-  const VR={club:'all'};
+  const VR={club:'all',last:false};
   const COLS=['#fde047','#60a5fa','#f472b6','#fb923c','#c084fc','#67e8f9','#fca5a5','#bef264','#ffffff','#a5b4fc'];
-  const sh=id=>(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));
+  const dayK=t=>new Date(t).toDateString();
+  const lastDay=()=>{let m=0;(S.shots||[]).forEach(s=>{if(s.carry>0&&isFullShot(s)&&s.t>m)m=s.t;});return m?dayK(m):null;};
+  const sh=id=>{const a=(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));if(!VR.last)return a;const k=lastDay();return a.filter(s=>dayK(s.t)===k);};
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
   function st(a){
@@ -83,7 +85,8 @@
     const u=ul(),clubs=S.clubs.filter(c=>c.on&&sh(c.id).length);
     if(!clubs.length)return '<div class="hint">'+T('No shots yet. Hit some balls in Play (at the range or at home) and your spread shows up here.','Ainda sem tacadas. Bate umas bolas em Jogar (no range ou em casa) e a tua dispersão aparece aqui.')+'</div>';
     if(VR.club!=='all'&&!clubs.some(c=>c.id===VR.club))VR.club='all';
-    const chips='<div class="chiprow"><button class="cond'+(VR.club==='all'?' pickon':'')+'" data-vr="club" data-v="all">'+T('All clubs','Todos')+'</button>'+clubs.map(c=>'<button class="cond'+(c.id===VR.club?' pickon':'')+'" data-vr="club" data-v="'+c.id+'">'+esc(tc(c.name))+'</button>').join('')+'</div>';
+    const when='<div class="seg" style="margin-bottom:8px"><button class="'+(VR.last?'':'on')+'" data-vr="when" data-v="all">'+T('All time','Sempre')+'</button><button class="'+(VR.last?'on':'')+'" data-vr="when" data-v="last">'+T('Last session','Última sessão')+'</button></div>';
+    const chips=when+'<div class="chiprow"><button class="cond'+(VR.club==='all'?' pickon':'')+'" data-vr="club" data-v="all">'+T('All clubs','Todos')+'</button>'+clubs.map(c=>'<button class="cond'+(c.id===VR.club?' pickon':'')+'" data-vr="club" data-v="'+c.id+'">'+esc(tc(c.name))+'</button>').join('')+'</div>';
     let ells=[],dots=[],maxM=100,body='',cap='';
     if(VR.club==='all'){
       clubs.forEach((c,i)=>{const a=sh(c.id).slice(-20),s=st(a);maxM=Math.max(maxM,s.my+1.28*s.sy);
@@ -132,5 +135,6 @@
   const _dl=dlRender;
   dlRender=function(){const r=_dl.apply(this,arguments);try{if(ptab==='play'&&PL.sub==='vr'&&!PL.on)vrRender();}catch(e){}return r;};
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="club"]');if(!b)return;VR.club=b.dataset.v;vrRender();});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="when"]');if(!b)return;VR.last=b.dataset.v==='last';vrRender();});
   window.__vr={VR,vrHTML,saveUnfinished};
 })();
