@@ -11,3 +11,4 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]),select{min-height
 .hz.hza{background:var(--soft);color:var(--mut);font-weight:500;font-size:14px}
 details.fold>summary,details>summary.link{min-height:44px;display:flex;align-items:center;cursor:pointer}
 details.fold>summary::-webkit-details-marker{display:none}
+.cond[data-gm="wind"]{min-height:44px!important;font-size:13px!important}
