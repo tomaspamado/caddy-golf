@@ -9,7 +9,7 @@
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
   /* mishits: the allowed spread comes from what tour players do with that kind of club (estimates, as of % of carry),
-     multiplied for an amateur (2x, 3x or 4x, your choice) and centred on YOUR average for the club. Outside it = mishit.
+     multiplied for an amateur (slider, default 3x) and centred on YOUR average for the club. Outside it = mishit.
      The average is taken twice, the second time without the mishits, so they cannot drag the centre. */
   const TOUR={driver:[.035,.05],wood:[.03,.045],hybrid:[.03,.04],long:[.027,.035],mid:[.025,.03],short:[.025,.028],wedge:[.025,.028]};
   const ctype=c=>{const n=((c&&c.name)||'').toLowerCase(),i=/(\d+)\s*iron/.exec(n)||/^(\d+)i/.exec(n);
@@ -135,7 +135,7 @@
       cap=T('Each oval holds about 80% of your last 20 shots with that club. Match the colour to the list below, or tap a club to see its shots.','Cada oval contém cerca de 80% das últimas 20 tacadas com esse taco. Liga a cor à lista abaixo ou toca num taco para ver as tacadas.');
     }else{
       const c=clubs.find(x=>x.id===VR.club),AA=sh(c.id),A=trim(AA),L=A.slice(-10),P=A.slice(-20,-10),sn=st(L),sp=P.length?st(P):null,col='#fde047';
-      AA.slice(-25).forEach(s=>{if(isOut(s,AA))dots.push({x:s.lat||0,y:s.carry,out:1});});L.forEach(s=>dots.push({x:s.lat||0,y:s.carry,col:col}));
+      AA.slice(-25).forEach(s=>{if(isOut(s,AA))dots.push({x:s.lat||0,y:s.carry,out:1});else if(L.indexOf(s)<0)dots.push({x:s.lat||0,y:s.carry,col:col,old:1});});L.forEach(s=>dots.push({x:s.lat||0,y:s.carry,col:col}));
       if(L.length>=3)ells.push({mx:sn.mx,my:sn.my,sx:Math.max(1,sn.sx),sy:Math.max(1,sn.sy),col:col});
       maxM=Math.max(maxM,sn.my+1.28*sn.sy);
       const ses=sessions(A);
@@ -152,8 +152,8 @@
       cap=T('Yellow: your last 10 shots. Red rings are mishits, left out of the ovals.','Amarelo: as últimas 10 tacadas. Anéis vermelhos são más tacadas, fora dos ovais.');
     }
     const p=pic(ells,dots,maxM),K=S.vrk||3;
-    const kc='<div class="lbl" style="margin:0 0 6px">'+T('Mishit limit','Limite das más tacadas')+'</div><div class="seg" style="margin:0 0 6px">'+[2,3,4].map(k=>'<button class="'+(K===k?'on':'')+'" data-vr="k" data-v="'+k+'">'+(k===2?T('Strict','Rigoroso'):k===3?T('Normal','Normal'):T('Loose','Largo'))+' ×'+k+'</button>').join('')+'</div><div class="sub" style="font-size:13px;margin:0 0 12px">'+T('Tour players\' spread for each kind of club, times {0} for you, around your own average. Anything outside is a mishit.','A dispersão dos profissionais para cada tipo de taco, vezes {0} para ti, à volta da tua média. O que fica fora é má tacada.').replace('{0}',K)+'</div>';
-    return chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div>'+kc+body;
+    const kc='<div id="vrk"><div class="lbl" style="margin:0 0 4px;display:flex;justify-content:space-between"><span>'+T('Mishit limit','Limite das más tacadas')+'</span><b id="vrkv">×'+(+K).toFixed(1)+'</b></div><input type="range" id="vrks" min="1.5" max="5" step="0.1" value="'+K+'" style="width:100%" aria-label="'+T('Mishit limit','Limite das más tacadas')+'"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut)"><span>'+T('Strict','Rigoroso')+'</span><span>'+T('Loose','Largo')+'</span></div><div class="sub" style="font-size:13px;margin:6px 0 12px">'+T('Tour players\' spread for each kind of club, times your number, around your own average. Anything outside is a mishit; it is still a shot, just not in the ovals.','A dispersão dos profissionais para cada tipo de taco, vezes o teu número, à volta da tua média. O que fica fora é má tacada; continua a ser uma tacada, só não entra nos ovais.')+'</div></div>';
+    return '<div id="vrtop">'+chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div></div>'+kc+'<div id="vrbot">'+body+'</div>';
   }
   function vrRender(){const b=document.getElementById('vrbox');if(b)b.innerHTML=vrHTML();}
 
@@ -175,7 +175,12 @@
   const _dl=dlRender;
   dlRender=function(){const r=_dl.apply(this,arguments);try{if(ptab==='play'&&PL.sub==='vr'&&!PL.on)vrRender();}catch(e){}return r;};
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="club"]');if(!b)return;VR.club=b.dataset.v;VR.all=false;VR.undo=null;vrRender();});
-  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="k"]');if(!b)return;S.vrk=Number(b.dataset.v);save();vrRender();try{refresh();}catch(_){}});
+  document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('#vrks');if(!r)return;
+    S.vrk=Math.round(Number(r.value)*10)/10;const bx=document.getElementById('vrbox');if(!bx)return;
+    const t=document.createElement('div');t.innerHTML=vrHTML();
+    ['vrtop','vrbot'].forEach(id=>{const o=document.getElementById(id),n=t.querySelector('#'+id);if(o&&n)o.innerHTML=n.innerHTML;});
+    const v=document.getElementById('vrkv');if(v)v.textContent='×'+S.vrk.toFixed(1);});
+  document.addEventListener('change',e=>{if(e.target&&e.target.id==='vrks'){save();try{refresh();}catch(_){}}});
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="when"]');if(!b)return;VR.last=b.dataset.v==='last';vrRender();});
   document.addEventListener('click',e=>{
     const b=e.target.closest('[data-vr="del"],[data-vr="undo"],[data-vr="more"]');if(!b)return;
