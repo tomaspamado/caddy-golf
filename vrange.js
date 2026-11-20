@@ -27,18 +27,29 @@
     const v={cd:cd,cl:cl2,td:td,tl:tl};_ck={A:A,k:S.vrk||3,n:A.length,v:v};return v;};
   const isOut=(s,A)=>{if(A.length<5)return false;const q=limits(A);return Math.abs(s.carry-q.cd)>q.td||(s.lat!=null&&Math.abs(s.lat-q.cl)>q.tl);};
   const trim=A=>A.filter(s=>!isOut(s,A));
-  /* the caddy's own spread follows the same mishit limit: mishits are left out of what it learns from the range */
+  /* the caddy follows the same mishit limit as the ovals */
   const _sp=spread;let _oc={};
   function outsFor(id){
     const k=id+'|'+(S.shots||[]).length+'|'+(S.vrk||3),c=_oc[k];if(c)return c;
     if(Object.keys(_oc).length>40)_oc={};
     const AA=(S.shots||[]).filter(x=>x.club===id&&x.carry>0&&isFullShot(x));
     return _oc[k]=AA.filter(x=>isOut(x,AA));}
+  const hitOut=(r,o)=>o.some(x=>Math.abs((r.t||0)-(x.t||0))<10000&&Math.abs((r.d!=null?r.d:r.carry)-x.carry)<2);
+  /* spread: mishits still count, but at a third of their weight (they are real, yet they should not rule the caddy) */
   spread=function(club){
     const rl=S.rlog,o=outsFor(club.id);
     if(!o.length||!rl)return _sp.apply(this,arguments);
-    try{S.rlog=rl.filter(r=>!(r.club===club.id&&o.some(x=>Math.abs((r.t||0)-(x.t||0))<10000&&Math.abs((r.d!=null?r.d:r.carry)-x.carry)<2)));return _sp.apply(this,arguments);}
+    let k=0;
+    try{S.rlog=rl.filter(r=>{if(r.club!==club.id||!hitOut(r,o))return true;return (k++)%3===0;});return _sp.apply(this,arguments);}
     finally{S.rlog=rl;}
+  };
+  /* carry distance: mishits never move a club's distance */
+  const _rcv=rlogCarry;
+  rlogCarry=function(id){
+    const r=_rcv(id),o=outsFor(id);
+    if(!o.length)return r;
+    const a=r.a.filter(x=>!hitOut(x,o));
+    return{n:a.length,avg:a.length?a.reduce((x,s)=>x+s.d,0)/a.length:null,a:a};
   };
   function st(a){
     if(!a.length)return null;
@@ -165,7 +176,7 @@
       cap=T('Yellow: your last 10 shots. Red rings are mishits, left out of the ovals.','Amarelo: as últimas 10 tacadas. Anéis vermelhos são más tacadas, fora dos ovais.');
     }
     const p=pic(ells,dots,maxM),K=S.vrk||3;
-    const kc='<div id="vrk"><div class="lbl" style="margin:0 0 4px;display:flex;justify-content:space-between"><span>'+T('Mishit limit','Limite das más tacadas')+'</span><b id="vrkv">×'+(+K).toFixed(1)+'</b></div><input type="range" id="vrks" min="1.5" max="5" step="0.1" value="'+K+'" style="width:100%" aria-label="'+T('Mishit limit','Limite das más tacadas')+'"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut)"><span>'+T('Strict','Rigoroso')+'</span><span>'+T('Loose','Largo')+'</span></div><div class="sub" style="font-size:13px;margin:6px 0 12px">'+T('Tour players\' spread for each kind of club, times your number, around your own average. Anything outside is a mishit; it is still a shot, just not in the ovals.','A dispersão dos profissionais para cada tipo de taco, vezes o teu número, à volta da tua média. O que fica fora é má tacada; continua a ser uma tacada, só não entra nos ovais.')+'</div></div>';
+    const kc='<div id="vrk"><div class="lbl" style="margin:0 0 4px;display:flex;justify-content:space-between"><span>'+T('Mishit limit','Limite das más tacadas')+'</span><b id="vrkv">×'+(+K).toFixed(1)+'</b></div><input type="range" id="vrks" min="1.5" max="5" step="0.1" value="'+K+'" style="width:100%" aria-label="'+T('Mishit limit','Limite das más tacadas')+'"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut)"><span>'+T('Strict','Rigoroso')+'</span><span>'+T('Loose','Largo')+'</span></div><div class="sub" style="font-size:13px;margin:6px 0 12px">'+T('Tour players\' spread for each kind of club, times your number, around your own average. Anything outside is a mishit: still a shot, but left out of the ovals and your club distances, and counted at a third of its weight in the caddy\'s spread.','A dispersão dos profissionais para cada tipo de taco, vezes o teu número, à volta da tua média. O que fica fora é má tacada: continua a ser uma tacada, mas fica fora dos ovais e das distâncias dos tacos, e conta um terço na dispersão do caddie.')+'</div></div>';
     return '<div id="vrtop">'+chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div></div>'+kc+'<div id="vrbot">'+body+'</div>';
   }
   function vrRender(){const b=document.getElementById('vrbox');if(b)b.innerHTML=vrHTML();}
@@ -193,7 +204,7 @@
     const t=document.createElement('div');t.innerHTML=vrHTML();
     ['vrtop','vrbot'].forEach(id=>{const o=document.getElementById(id),n=t.querySelector('#'+id);if(o&&n)o.innerHTML=n.innerHTML;});
     const v=document.getElementById('vrkv');if(v)v.textContent='×'+S.vrk.toFixed(1);});
-  document.addEventListener('change',e=>{if(e.target&&e.target.id==='vrks'){save();try{refresh();}catch(_){}}});
+  document.addEventListener('change',e=>{if(e.target&&e.target.id==='vrks'){save();try{plLearn();}catch(_){}try{refresh();}catch(_){}}});
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="when"]');if(!b)return;VR.last=b.dataset.v==='last';vrRender();});
   document.addEventListener('click',e=>{
     const b=e.target.closest('[data-vr="del"],[data-vr="undo"],[data-vr="more"]');if(!b)return;
