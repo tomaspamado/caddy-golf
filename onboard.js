@@ -32,7 +32,7 @@
       ['◯',T('One oval per club','Um oval por taco'),T('It holds about 80% of your recent shots. Tap a club to open its shots.','Contém cerca de 80% das tacadas recentes. Toca num taco para ver as tacadas.')],
       ['✕',T('Delete bad shots','Apaga tacadas más'),T('Remove any shot that should not count. Mishits show as red rings and stay out of the ovals.','Remove as tacadas que não devem contar. As más tacadas ficam em anéis vermelhos, fora dos ovais.')],
       ['↻',T('Last session','Última sessão'),T('Switch between all time and your latest day.','Alterna entre sempre e o teu último dia.')]]},
-    {ic:'☰',t:T('Scorecard and handicap','Cartão e handicap'),s:T('Under More, Round.','Em Mais, Volta.'),r:[
+    {ic:'☰',t:T('Scorecard and handicap','Cartão e handicap'),s:T('Under the Caddy tab.','No separador Caddy.'),r:[
       ['✎',T('Score as you go','Regista ao jogar'),T('Start a round, tap the score for each hole. Turn on putts in Settings for more.','Começa uma volta e toca no resultado de cada buraco. Liga os putts nas Definições para mais.')],
       ['↘',T('Handicap and putting','Handicap e putting'),T('After a few rounds you get an index, putts per hole and three-putt rate.','Depois de algumas voltas vês o índice, os putts por buraco e os 3 putts.')]]},
     {ic:'⚙',t:T('Bag and Settings','Saco e Definições'),s:T('Under More.','Em Mais.'),r:[
