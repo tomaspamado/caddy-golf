@@ -10,7 +10,7 @@
       const cf=PL.cf||0,chip=(v,l)=>'<button class="cond'+(cf===v?' pickon':'')+'" data-pl="cfilter" data-v="'+v+'">'+l+'</button>';
       h=h.replace(/<div class="lbl" style="margin:12px 0 8px">(Quick hole|Buraco rápido)<\/div><div class="row">[\s\S]*?<\/div>/,
         '<div class="lbl" style="margin:12px 0 8px">'+T('Courses','Campos')+'</div><div class="chiprow" style="margin:0 0 8px">'+chip(0,T('All','Todos'))+chip(1,T('Easy','Fácil'))+chip(2,T('Medium','Médio'))+chip(3,T('Tough','Difícil'))+
-        '</div><button class="sec" data-pl="rand" style="width:100%">'+T('🎲 Random practice hole','🎲 Buraco de treino aleatório')+'</button>');
+        '</div><button class="sec" data-pl="rand" style="width:100%">'+T('Random practice hole','Buraco de treino aleatório')+'</button>');
       h=h.replace(/<div class="lbl" style="margin:14px 0 8px">(Courses|Campos)<\/div>/,'');
       h=h.replace(/<button class="[^"]*" data-gm="sub" data-v="goals">[\s\S]*?<\/button>/,'')
          .replace(/(data-gm="sub" data-v="target">)[^<]*/,'$1'+T('Practice','Treino'))
@@ -88,5 +88,11 @@
     const b=e.target.closest('[data-pl="cfilter"],[data-pl="rand"]');if(!b)return;
     if(b.dataset.pl==='cfilter'){PL.cf=Number(b.dataset.v)||0;openPanel('play');return;}
     const ls=LIB.filter(o=>!PL.cf||o.lvl===PL.cf);if(ls.length)plStart('hole',ls[Math.floor(Math.random()*ls.length)].id);
+  });
+
+  /* Start round drops you on the map, not on the scorecard */
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('[data-act="startRound"]'))return;
+    setTimeout(()=>{try{if(S.round&&!document.getElementById('panel').hidden)document.getElementById('pclose').click();}catch(_){}},120);
   });
 })();
