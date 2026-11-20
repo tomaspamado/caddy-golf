@@ -49,7 +49,12 @@
     ells.forEach(e=>{
       const ex=X(e.mx),ey=Y(e.my),rx=Math.max(6,1.28*e.sx*SX),ry=Math.max(6,1.28*e.sy*sy);
       g+='<ellipse cx="'+ex+'" cy="'+ey+'" rx="'+rx+'" ry="'+ry+'" fill="'+e.col+'" fill-opacity="'+(e.old?.06:.24)+'" stroke="'+(e.old?'#e5e7eb':e.col)+'" stroke-width="'+(e.old?1.5:2)+'"'+(e.old?' stroke-dasharray="5 4"':'')+'/>';
-      if(e.lab)g+='<text x="'+ex+'" y="'+(ey+4)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#fff" style="paint-order:stroke;stroke:#0b1f12;stroke-width:3px">'+e.lab+'</text>';
+    });
+    const placed=[];
+    ells.filter(e=>e.lab).map(e=>({e:e,x:X(e.mx),y:Y(e.my)+4})).sort((a,b)=>a.y-b.y).forEach(o=>{
+      let y=o.y;placed.forEach(p=>{if(Math.abs(p.x-o.x)<70&&Math.abs(p.y-y)<13)y=p.y+13;});
+      placed.push({x:o.x,y:y});
+      g+='<text x="'+o.x+'" y="'+y+'" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" style="paint-order:stroke;stroke:#0b1f12;stroke-width:3px">'+o.e.lab+'</text>';
     });
     dots.forEach(d=>{g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="'+(d.old?2.5:3.5)+'" fill="'+(d.old?'none':d.col)+'" stroke="'+(d.old?'#e5e7eb':'#0b1f12')+'" stroke-width="'+(d.old?1:1.2)+'"/>';});
     return{svg:'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;border-radius:12px" role="img" aria-label="'+T('Virtual range','Range virtual')+'">'+g+'</svg>',ratio:SX/sy};
@@ -105,7 +110,7 @@
     let ells=[],dots=[],maxM=100,body='',cap='';
     if(VR.club==='all'){
       clubs.forEach((c,i)=>{const a=sh(c.id).slice(-20),s=st(a);maxM=Math.max(maxM,s.my+1.28*s.sy);
-        if(a.length>=3)ells.push({mx:s.mx,my:s.my,sx:Math.max(1,s.sx),sy:Math.max(1,s.sy),col:COLS[i%COLS.length]});});
+        if(a.length>=3)ells.push({mx:s.mx,my:s.my,sx:Math.max(1,s.sx),sy:Math.max(1,s.sy),col:COLS[i%COLS.length],lab:esc(tc(c.name))});});
       body=clubs.map((c,ci)=>{const A=sh(c.id),now=st(A.slice(-10)),bf=A.length>10?st(A.slice(-20,-10)):null;
         return '<div class="shot" data-vr="club" data-v="'+c.id+'" style="cursor:pointer;min-height:56px;align-items:center"><span><b><i style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25);background:'+COLS[ci%COLS.length]+'"></i>'+esc(tc(c.name))+'</b><br><small class="sub">'+A.length+' '+T('shots','tacadas')+'</small></span><span style="text-align:right"><b>'+d1(now.my)+'</b> '+u+'<br><small class="sub">±'+d1(now.sx)+' '+T('sideways','lado')+(bf&&bf.n>=3&&now.n>=3?' · '+(now.sx<bf.sx*0.96?T('tighter','mais junto'):now.sx>bf.sx*1.04?T('wider','mais aberto'):T('same','igual')):'')+'</small></span></div>';}).join('');
       cap=T('Each oval holds about 80% of your last 20 shots with that club. Match the colour to the list below, or tap a club to see its shots.','Cada oval contém cerca de 80% das últimas 20 tacadas com esse taco. Liga a cor à lista abaixo ou toca num taco para ver as tacadas.');
