@@ -33,4 +33,6 @@
     setTimeout(()=>{const p=document.getElementById('pbody');if(p)p.scrollTop=0;},0);
   });
   watch();
+  /* the Data screens are gone: anything that tries to open them goes to Play */
+  if(typeof openPanel==='function'){const _op=openPanel;openPanel=function(t){if(t==='data')t='play';return _op.call(this,t);};}
 })();
