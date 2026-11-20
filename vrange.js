@@ -8,13 +8,24 @@
   const sh=id=>{const a=(S.shots||[]).filter(s=>s.club===id&&s.carry>0&&isFullShot(s));if(!VR.last)return a;const k=lastDay();return a.filter(s=>dayK(s.t)===k);};
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
   const sdv=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/(a.length-1));};
-  /* mishits, judged per club: a shot is a mishit when it sits more than 2.5 robust spreads from the club's median, in distance or sideways.
-     Median and MAD are used instead of average and standard deviation, so the mishits themselves cannot widen the limit and hide each other. */
-  const med=a=>{const q=[...a].sort((x,y)=>x-y),n=q.length;return n%2?q[(n-1)/2]:(q[n/2-1]+q[n/2])/2;};
-  const isOut=(s,A)=>{if(A.length<8)return false;
-    const d=A.map(x=>x.carry),md=med(d),sd=Math.max(1.4826*med(d.map(x=>Math.abs(x-md))),0.03*md),
-      l=A.filter(x=>x.lat!=null).map(x=>x.lat),ml=l.length?med(l):0,sl=Math.max(l.length?1.4826*med(l.map(x=>Math.abs(x-ml))):0,1.5);
-    return Math.abs(s.carry-md)>2.5*sd||(s.lat!=null&&Math.abs(s.lat-ml)>2.5*sl);};
+  /* mishits: the allowed spread comes from what tour players do with that kind of club (estimates, as of % of carry),
+     multiplied for an amateur (2x, 3x or 4x, your choice) and centred on YOUR average for the club. Outside it = mishit.
+     The average is taken twice, the second time without the mishits, so they cannot drag the centre. */
+  const TOUR={driver:[.035,.05],wood:[.03,.045],hybrid:[.03,.04],long:[.027,.035],mid:[.025,.03],short:[.025,.028],wedge:[.025,.028]};
+  const ctype=c=>{const n=((c&&c.name)||'').toLowerCase(),i=/(\d+)\s*iron/.exec(n)||/^(\d+)i/.exec(n);
+    if(/driver/.test(n))return 'driver';if(/wood/.test(n))return 'wood';if(/hybrid|rescue/.test(n))return 'hybrid';if(/wedge|^pw|^gw|^sw|^lw|^aw/.test(n))return 'wedge';
+    if(i){const k=+i[1];return k<=5?'long':k<=7?'mid':'short';}return 'mid';};
+  let _ck=null;
+  const limits=A=>{
+    if(_ck&&_ck.A===A&&_ck.k===(S.vrk||3)&&_ck.n===A.length)return _ck.v;
+    const cl=S.clubs.find(c=>c.id===(A[0]&&A[0].club)),t=TOUR[ctype(cl)],m=S.vrk||3;
+    let cd=mean(A.map(x=>x.carry)),ll=A.filter(x=>x.lat!=null),cl2=ll.length?mean(ll.map(x=>x.lat)):0,td=m*2*t[0]*cd,tl=m*2*t[1]*cd;
+    for(let p=0;p<2;p++){
+      const keep=A.filter(x=>Math.abs(x.carry-cd)<=td&&(x.lat==null||Math.abs(x.lat-cl2)<=tl));
+      if(keep.length>=3){cd=mean(keep.map(x=>x.carry));const kl=keep.filter(x=>x.lat!=null);if(kl.length)cl2=mean(kl.map(x=>x.lat));td=m*2*t[0]*cd;tl=m*2*t[1]*cd;}
+    }
+    const v={cd:cd,cl:cl2,td:td,tl:tl};_ck={A:A,k:S.vrk||3,n:A.length,v:v};return v;};
+  const isOut=(s,A)=>{if(A.length<5)return false;const q=limits(A);return Math.abs(s.carry-q.cd)>q.td||(s.lat!=null&&Math.abs(s.lat-q.cl)>q.tl);};
   const trim=A=>A.filter(s=>!isOut(s,A));
   function st(a){
     if(!a.length)return null;
@@ -56,7 +67,7 @@
     g+='<rect x="'+(cx-70)+'" y="'+y0+'" width="140" height="22" rx="4" fill="#5b6b5f"/><text x="'+cx+'" y="'+(y0+15)+'" text-anchor="middle" font-size="10" fill="#e8efe9">'+T('Tee','Tee')+'</text>';
     ells.forEach(e=>{
       const ex=X(e.mx),ey=Y(e.my),rx=Math.max(6,1.28*e.sx*SX),ry=Math.max(6,1.28*e.sy*sy);
-      g+='<ellipse cx="'+ex+'" cy="'+ey+'" rx="'+rx+'" ry="'+ry+'" fill="'+e.col+'" fill-opacity=".24" stroke="'+e.col+'" stroke-width="2"/>';
+      g+='<ellipse cx="'+ex+'" cy="'+ey+'" rx="'+rx+'" ry="'+ry+'" fill="'+e.col+'" fill-opacity="'+(e.old?.06:.24)+'" stroke="'+(e.old?'#e5e7eb':e.col)+'" stroke-width="'+(e.old?1.5:2)+'"'+(e.old?' stroke-dasharray="5 4"':'')+'/>';
     });
     const placed=[];
     ells.filter(e=>e.lab).map(e=>({e:e,x:X(e.mx),y:Y(e.my)+4})).sort((a,b)=>a.y-b.y).forEach(o=>{
@@ -64,7 +75,7 @@
       placed.push({x:o.x,y:y});
       g+='<text x="'+o.x+'" y="'+y+'" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" style="paint-order:stroke;stroke:#0b1f12;stroke-width:3px">'+o.e.lab+'</text>';
     });
-    dots.forEach(d=>{if(d.out){g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="4" fill="none" stroke="#f87171" stroke-width="1.8"/>';return;}g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="3.5" fill="'+d.col+'" stroke="#0b1f12" stroke-width="1.2"/>';});
+    dots.forEach(d=>{if(d.out){g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="4" fill="none" stroke="#f87171" stroke-width="1.8"/>';return;}g+='<circle cx="'+X(d.x)+'" cy="'+Y(d.y)+'" r="'+(d.old?2.5:3.5)+'" fill="'+(d.old?'none':d.col)+'" stroke="'+(d.old?'#e5e7eb':'#0b1f12')+'" stroke-width="'+(d.old?1:1.2)+'"/>';});
     return{svg:'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;border-radius:12px" role="img" aria-label="'+T('Virtual range','Range virtual')+'">'+g+'</svg>',ratio:SX/sy};
   }
 
@@ -94,17 +105,16 @@
     return '<div class="shot"><span>'+label+'</span><span><span class="sub">'+f(a)+' → </span><b>'+f(b)+'</b> <span style="color:'+col+';font-weight:500">'+word+'</span></span></div>';
   }
 
-  /* every shot that counts for this club, newest first, each one removable; mishits in red */
+  /* every shot that counts for this club, newest first, each one removable */
   function listHTML(c,A){
-    const u=ul(),n=A.length;
+    const u=ul(),n=A.length,m=mean(A.map(s=>s.carry)),sc=sdv(A.map(s=>s.carry)),ll=A.filter(s=>s.lat!=null),ml=ll.length?mean(ll.map(s=>s.lat)):0,sl=sdv(ll.map(s=>s.lat));
     const odd=s=>isOut(s,A);
     const lim=VR.all?n:40,rows=A.map(s=>({s:s,i:S.shots.indexOf(s)})).reverse().slice(0,lim);
     let h='<div class="lbl" style="margin:20px 0 6px">'+T('Shots counted','Tacadas contadas')+' · '+n+'</div><div class="sub" style="font-size:13px;margin:0 0 8px">'+T('Delete any shot that should not count. The ovals and the caddy update straight away.','Apaga as tacadas que não devem contar. Os ovais e o caddie atualizam logo.')+'</div>';
     if(VR.undo)h+='<div class="aim" style="display:flex;justify-content:space-between;align-items:center;background:var(--soft);color:var(--ink)"><span>'+T('Shot deleted','Tacada apagada')+'</span><button class="link" data-vr="undo" style="color:var(--accd)">'+T('Undo','Anular')+'</button></div>';
     h+=rows.map(r=>{
       const s=r.s,d=new Date(s.t),side=s.lat==null?'–':(Math.abs(s.lat)<0.5?T('on line','na linha'):d1(Math.abs(s.lat))+' '+u+' '+(s.lat<0?T('left','esq.'):T('right','dir.')));
-      const bad=odd(s);
-      return '<div class="shot" style="align-items:center;gap:8px'+(bad?';background:#fdecea;border-radius:10px;padding-left:8px;padding-right:8px;color:#b42318':'')+'"><span><b>'+(bad?'<i style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #f87171;margin-right:6px"></i>':'')+d1(s.carry)+' '+u+'</b><br><small class="sub"'+(bad?' style="color:#b42318"':'')+'>'+dl(s.t)+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(bad?' · '+T('mishit, not in the ovals','má tacada, fora dos ovais'):'')+'</small></span><span class="sub" style="margin-left:auto;text-align:right'+(bad?';color:#b42318':'')+'">'+side+'</span><button class="x" data-vr="del" data-i="'+r.i+'" aria-label="'+T('Delete shot','Apagar tacada')+'">✕</button></div>';
+      const bad=odd(s);return '<div class="shot" style="align-items:center;gap:8px'+(bad?';background:#fdecea;border-radius:10px;padding-left:8px;padding-right:8px;color:#b42318':'')+'"><span><b>'+(bad?'<i style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #f87171;margin-right:6px"></i>':'')+d1(s.carry)+' '+u+'</b><br><small class="sub"'+(bad?' style="color:#b42318"':'')+'>'+dl(s.t)+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(bad?' · '+T('mishit, not in the ovals','má tacada, fora dos ovais'):'')+'</small></span><span class="sub" style="margin-left:auto;text-align:right'+(bad?';color:#b42318':'')+'">'+side+'</span><button class="x" data-vr="del" data-i="'+r.i+'" aria-label="'+T('Delete shot','Apagar tacada')+'">✕</button></div>';
     }).join('');
     if(n>lim)h+='<button class="sec" data-vr="more" style="width:100%;margin-top:8px">'+T('Show all {0} shots','Ver as {0} tacadas').replace('{0}',n)+'</button>';
     return h;
@@ -141,8 +151,9 @@
       body+=listHTML(c,AA);
       cap=T('Yellow: your last 10 shots. Red rings are mishits, left out of the ovals.','Amarelo: as últimas 10 tacadas. Anéis vermelhos são más tacadas, fora dos ovais.');
     }
-    const p=pic(ells,dots,maxM);
-    return chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div>'+body;
+    const p=pic(ells,dots,maxM),K=S.vrk||3;
+    const kc='<div class="lbl" style="margin:0 0 6px">'+T('Mishit limit','Limite das más tacadas')+'</div><div class="seg" style="margin:0 0 6px">'+[2,3,4].map(k=>'<button class="'+(K===k?'on':'')+'" data-vr="k" data-v="'+k+'">'+(k===2?T('Strict','Rigoroso'):k===3?T('Normal','Normal'):T('Loose','Largo'))+' ×'+k+'</button>').join('')+'</div><div class="sub" style="font-size:13px;margin:0 0 12px">'+T('Tour players\' spread for each kind of club, times {0} for you, around your own average. Anything outside is a mishit.','A dispersão dos profissionais para cada tipo de taco, vezes {0} para ti, à volta da tua média. O que fica fora é má tacada.').replace('{0}',K)+'</div>';
+    return chips+p.svg+'<div class="sub" style="font-size:13px;margin:6px 0 12px">'+cap+' '+T('Sideways is stretched ×{0} so the spread is easy to see.','O lado está esticado ×{0} para veres bem a dispersão.').replace('{0}',p.ratio.toFixed(1))+'</div>'+kc+body;
   }
   function vrRender(){const b=document.getElementById('vrbox');if(b)b.innerHTML=vrHTML();}
 
@@ -164,6 +175,7 @@
   const _dl=dlRender;
   dlRender=function(){const r=_dl.apply(this,arguments);try{if(ptab==='play'&&PL.sub==='vr'&&!PL.on)vrRender();}catch(e){}return r;};
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="club"]');if(!b)return;VR.club=b.dataset.v;VR.all=false;VR.undo=null;vrRender();});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="k"]');if(!b)return;S.vrk=Number(b.dataset.v);save();vrRender();try{refresh();}catch(_){}});
   document.addEventListener('click',e=>{const b=e.target.closest('[data-vr="when"]');if(!b)return;VR.last=b.dataset.v==='last';vrRender();});
   document.addEventListener('click',e=>{
     const b=e.target.closest('[data-vr="del"],[data-vr="undo"],[data-vr="more"]');if(!b)return;
