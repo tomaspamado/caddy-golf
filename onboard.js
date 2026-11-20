@@ -10,6 +10,7 @@
   '#ob .foot{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:6px}'+
   '#ob input[type=number]{font-size:26px;min-height:56px}#ob .err{color:var(--bad);font-size:14px;min-height:20px;margin:6px 0 0}'+
   '#ob .big{width:64px;height:64px;border-radius:50%;background:#effaf2;color:var(--accd);display:grid;place-items:center;font-size:32px;margin:30px auto 14px}';
+  st.textContent+='#ob .pv{position:relative;height:300px;overflow:hidden;border:1.5px solid var(--line);border-radius:18px;margin:0 0 14px;background:#fff;pointer-events:none}#ob .pv>div{width:624px;transform:scale(.56);transform-origin:0 0;padding:14px 16px;box-sizing:border-box}#ob .pv:after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(transparent,#fff)}#ob .pv.map>div{width:auto;transform:none;padding:0;height:100%;position:relative}#ob .pv.map{background:#0d2a1a;border-color:#0d2a1a}#ob .pv.map:after{display:none}#ob .tr h1{font-size:22px;margin:0 0 2px;text-align:center}#ob .tr .sub{font-size:14px;margin:0 0 12px;text-align:center}#ob .tr .orow{margin:0 0 10px}#ob .tr .oic{width:34px;height:34px;font-size:17px}#ob .tr .orow b{font-size:15px}#ob .tr .orow span{font-size:13px}';
   document.head.appendChild(st);
 
   let O=null;
@@ -20,26 +21,47 @@
 
   /* the tour: one screen per part of the app (steps 4 to 8) */
   const TOUR=()=>[
-    {ic:'⌖',t:T('Caddy: the map','Caddy: o mapa'),s:T('Your main screen on the course.','O teu ecrã principal no campo.'),r:[
+    {k:'map',ic:'⌖',t:T('Caddy: the map','Caddy: o mapa'),s:T('Your main screen on the course.','O teu ecrã principal no campo.'),r:[
       ['⛳',T('Club and distance','Taco e distância'),T('The card at the bottom names the club and the distance it plays, with wind and slope included.','O cartão em baixo indica o taco e a distância que joga, com vento e declive.')],
       ['◎',T('Set the pin and target','Pin e alvo'),T('Tap the map to place them. Hazards you mark change the advice.','Toca no mapa para os colocar. Os obstáculos que marcas mudam o conselho.')],
       ['▤',T('Front, middle, back','Frente, meio, fundo'),T('Green distances show at the top when the course is mapped, and the hole advances by itself.','As distâncias ao green aparecem em cima se o campo estiver mapeado, e o buraco avança sozinho.')]]},
-    {ic:'⛳',t:T('Play','Jogar'),s:T('Practice with or without the course.','Treina com ou sem o campo.'),r:[
+    {k:'play',ic:'⛳',t:T('Play','Jogar'),s:T('Practice with or without the course.','Treina com ou sem o campo.'),r:[
       ['●',T('Range (real ball)','Range (bola real)'),T('Enter the carry and the miss after each shot. Every shot feeds your numbers.','Indica o voo e o desvio depois de cada tacada. Cada tacada alimenta os teus números.')],
       ['⌂',T('Home (no ball)','Casa (sem bola)'),T('Swing indoors and the camera plays the shot.','Roda em casa e a câmara joga a tacada.')],
       ['◐',T('Courses and practice','Campos e treino'),T('Filter by Easy, Medium or Tough, or take a random practice hole.','Filtra por Fácil, Médio ou Difícil, ou apanha um buraco de treino aleatório.')]]},
-    {ic:'◉',t:T('Range view','Vista range'),s:T('See how your shots spread.','Vê como se espalham as tuas tacadas.'),r:[
+    {k:'vr',ic:'◉',t:T('Range view','Vista range'),s:T('See how your shots spread.','Vê como se espalham as tuas tacadas.'),r:[
       ['◯',T('One oval per club','Um oval por taco'),T('It holds about 80% of your recent shots. Tap a club to open its shots.','Contém cerca de 80% das tacadas recentes. Toca num taco para ver as tacadas.')],
       ['✕',T('Delete bad shots','Apaga tacadas más'),T('Remove any shot that should not count. Mishits show as red rings and stay out of the ovals.','Remove as tacadas que não devem contar. As más tacadas ficam em anéis vermelhos, fora dos ovais.')],
       ['↻',T('Last session','Última sessão'),T('Switch between all time and your latest day.','Alterna entre sempre e o teu último dia.')]]},
-    {ic:'☰',t:T('Scorecard and handicap','Cartão e handicap'),s:T('Under the Caddy tab.','No separador Caddy.'),r:[
+    {k:'round',ic:'☰',t:T('Scorecard and handicap','Cartão e handicap'),s:T('Under the Caddy tab.','No separador Caddy.'),r:[
       ['✎',T('Score as you go','Regista ao jogar'),T('Start a round, tap the score for each hole. Turn on putts in Settings for more.','Começa uma volta e toca no resultado de cada buraco. Liga os putts nas Definições para mais.')],
       ['↘',T('Handicap and putting','Handicap e putting'),T('After a few rounds you get an index, putts per hole and three-putt rate.','Depois de algumas voltas vês o índice, os putts por buraco e os 3 putts.')]]},
-    {ic:'⚙',t:T('Bag and Settings','Saco e Definições'),s:T('Under More.','Em Mais.'),r:[
+    {k:'bag',ic:'⚙',t:T('Bag and Settings','Saco e Definições'),s:T('Under More.','Em Mais.'),r:[
       ['⌬',T('Your bag','O teu saco'),T('Set each club\'s carry. It sharpens as you hit shots.','Define o voo de cada taco. Fica mais certo à medida que bates.')],
       ['⎘',T('Backup','Cópia de segurança'),T('Copy a backup now and then. Your data lives only on this phone.','Copia uma cópia de vez em quando. Os dados vivem só neste telemóvel.')],
       ['＋',T('Add to Home Screen','Adicionar ao Ecrã principal'),T('In Safari tap Share, then Add to Home Screen. It opens like an app and keeps your data safe.','No Safari toca em Partilhar e Adicionar ao Ecrã principal. Abre como uma app e protege os dados.')]]}
   ];
+
+  /* real screens, drawn by the app's own code with sample shots, shown small and not clickable */
+  function preview(k){
+    const keep={sh:S.shots,rl:S.rlog,src:PL.src,sub:PL.sub};
+    try{
+      if(k==='map'){
+        return '<div class="pv map"><div><div style="position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:600"><i class="dot ok"></i> GPS ±3 m</div><div style="position:absolute;left:50%;transform:translateX(-50%);top:54px;background:rgba(23,23,23,.88);color:#fff;border-radius:14px;padding:5px 12px;font-size:13px;font-weight:600;white-space:nowrap">'+T('Front','Frente')+' 128 &nbsp; '+T('Middle','Meio')+' 139 &nbsp; '+T('Back','Fundo')+' 150</div>'+
+          '<div style="position:absolute;left:44%;top:96px;font-size:26px">⛳</div><div style="position:absolute;left:46%;top:178px;width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff"></div>'+
+          '<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:12px 16px"><div class="hero"><div><div class="lbl">'+T('Club','Taco')+'</div><div style="font-size:30px;font-weight:800">7 Iron</div></div><div style="text-align:right"><div style="font-size:30px;font-weight:800">139<small style="font-size:14px;color:var(--mut)"> m</small></div><div style="font-size:12px;color:var(--mut)">'+T('plays 142 m','joga 142 m')+'</div></div></div></div></div></div>';
+      }
+      const demo=[];const n=Date.now();
+      S.clubs.filter(c=>c.on).slice(0,7).forEach((c,j)=>{for(let i=0;i<12;i++)demo.push({t:n-i*60000-j*1000,src:'range',club:c.id,carry:c.carry+((i*7)%9)-4,lat:((i*5)%7-3)*1.5,fl:'n'});});
+      let h='';
+      if(k==='play'){PL.src='range';PL.sub='goals';h=playHTML();}
+      else if(k==='vr'){S.shots=demo;S.rlog=[];window.__vr.VR.club='all';window.__vr.VR.last=false;h=window.__vr.vrHTML();}
+      else if(k==='round'){h=hcHTML();}
+      else if(k==='bag'){h=bagHTML();}
+      return '<div class="pv"><div>'+h+'</div></div>';
+    }catch(e){return '';}
+    finally{S.shots=keep.sh;S.rlog=keep.rl;PL.src=keep.src;PL.sub=keep.sub;}
+  }
 
   function render(){
     const n=O.step;let h=dots(n);
@@ -68,7 +90,7 @@
         '<div class="foot"><button class="cta" data-ob="allow">'+T('Allow location','Permitir localização')+'</button><button class="link" data-ob="later">'+T('Not now','Agora não')+'</button></div>';
     }else if(n>=4&&n<=8){
       const P=TOUR(),p=P[n-4];
-      h+='<div class="dots">'+P.map((x,i)=>'<i class="'+(i===n-4?'on':'')+'"></i>').join('')+'</div><div class="big" style="margin-top:6px">'+p.ic+'</div><h1 style="text-align:center">'+p.t+'</h1><p class="sub center">'+p.s+'</p>'+p.r.map(r=>row(r[0],r[1],r[2])).join('')+
+      h+='<div class="dots">'+P.map((x,i)=>'<i class="'+(i===n-4?'on':'')+'"></i>').join('')+'</div>'+(preview(p.k)||'<div class="big" style="margin-top:6px">'+p.ic+'</div>')+'<div class="tr"><h1>'+p.t+'</h1><p class="sub">'+p.s+'</p>'+p.r.map(r=>row(r[0],r[1],r[2])).join('')+'</div>'+
         '<div class="foot"><button class="cta" data-ob="next">'+(n===8?T('Finish','Concluir'):T('Next','Seguinte'))+'</button>'+(n<8?'<button class="link" data-ob="endtour">'+T('Skip the tour','Saltar a visita')+'</button>':'')+'</div>';
     }else{
       h+='<div class="big">✓</div><h1 style="text-align:center">'+T("You're set","Está tudo pronto")+'</h1><p class="sub center">'+(O.c7?T('Your 7 iron carries ','O teu ferro 7 faz ')+O.c7+' '+(O.unit==='m'?'m':'yd')+'. ':'')+T('Start a round or hit some balls at the range.','Começa uma volta ou bate umas bolas no range.')+'</p>'+
